@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <!-- <link rel="stylesheet" type="text/css" href="./style/main.css"> -->
+<body>
+    <div class="panel">
+        <a>open4vision</a>
+        <input type="text" id="pcd_load_triggler" style="display:none;">
+    </div>
+    <div class="wrapper"style="display:flex;width:100%">
+        <div class="pannel" stype="position:relative">
+            <input placeholder="" type="text" id="filterInput" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <button>search</button>
+            <p>data 1 from sever</p>
+            <p>data 2 from sever</p>
+            <p>data 3 from sever</p>
+            <p>...</p>
+        </div>
+        <div>
+        <iframe src="./load_pcd.html" title="Space app" class="container_viwer" name="display_iframe"
+            allow="fullscreen;xr-spatial-tracking;" 
+            scrolling="no" id="viwer"style="overflow: hidden; height: 512px;width: 512px;">
+        </iframe>
+        </div>
+        <div class="pannel" stype="display:grid;    grid-template-columns: 1fr;
+        grid-template-rows: 100px;
+        grid-gap: 10px;">
+            <button> snapshot </button>>
+            <button> operation 1</button>
+            <button> operation 2</button>
+            <button> operation 3</button>
+        </div>
+    </div>
+    <div class ="panel"style="display:flex">
+        <input type="file" id="btn_file" onchange="update_path()">
+        <button>save to sever</button>
+        <button>download</button>
+    </div>
+    <script >
+        function update_path(){
+            input_path=document.getElementById("btn_file");
+            document.getElementById("pcd_load_triggler").value=input_path.files[0].name;
+            display_iframe.location.reload(true);
+        }
+    </script>
+</body>
+</head>

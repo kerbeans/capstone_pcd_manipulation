@@ -4,12 +4,13 @@
 		<title>three.js webgl - PCD</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link type="text/css" rel="stylesheet" href="main.css">
+		<link type="text/css" rel="stylesheet" href="./style/load_pcd.css">
 	</head>
 	<body>
 		<div id="info">
 			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
 			<a href="https://pointclouds.org/documentation/tutorials/pcd_file_format.html" target="_blank" rel="noopener">PCD File format</a>
+			
 		</div>
 
 		<!-- Import maps polyfill -->
@@ -34,11 +35,11 @@
 			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 			let camera, scene, renderer;
-
-			init();
+			let pcd_path=window.parent.document.getElementById('pcd_load_triggler').value;
+			init(pcd_path);
 			render();
 
-			function init() {
+			function init(pcd_path) {
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -57,9 +58,9 @@
 				controls.maxDistance = 10;
 
 				//scene.add( new THREE.AxesHelper( 1 ) );
-
 				const loader = new PCDLoader();
-				loader.load( './Zaghetto.pcd', function ( points ) {
+				if(pcd_path != '')
+				loader.load( pcd_path, function ( points ) {
 
 					points.geometry.center();
 					points.geometry.rotateX( Math.PI );
@@ -100,6 +101,7 @@
 				renderer.render( scene, camera );
 
 			}
+
 
 		</script>
 	</body>
