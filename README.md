@@ -1,3 +1,4 @@
 # capstone_pcd_manipulation
 
-open with vscode live sever with main
+install live sever extention of vscode
+open main in live sever
