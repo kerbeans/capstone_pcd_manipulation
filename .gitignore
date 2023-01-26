@@ -1,0 +1,7 @@
+#Backend config file
+/Backend/.idea
+
+#Frontend module file
+/Frontend/node_module
+
+

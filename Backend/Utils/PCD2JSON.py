@@ -1,3 +1,4 @@
+import json
 import open3d as o3d
 import numpy as np
 
@@ -22,13 +23,26 @@ def PCD2JSON(pcd):
     if colors.size == 0:
         colors = np.zeros((len(points),3), dtype=np.int32)
     if normals.size == 0:
-        return np.concatenate([points, colors], axis=-1)
-    else:
-        return np.concatenate([points, colors, normals], axis=-1)
+        normals = np.zeros((len(points), 3), dtype=np.int32)
+    data = np.concatenate([points, colors, normals], axis=-1)
+    jdict = []
+    for point in data:
+        dict = {"x":point[0], "y":point[1], "z":point[2], "r":point[3], "g":point[4], "b":point[5], "n":point[6]}
+        jdict.append(dict)
+    jsondata = json.dumps(jdict)
+    return jsondata
 
+def JSON2PCD(points, path):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+
+    with open(path, 'w') as f:
+        f.write(HEADER.format(len(points), len(points)) + '\n')
+        np.savetxt(f, points, delimiter = ' ', fmt = '%f %f %f %d')
 #todo
 #def JSON2PCD()
 
 if __name__ == '__main__':
     pcd = o3d.io.read_point_cloud("test.pcd")
+
     print(PCD2JSON(pcd))
