@@ -86,7 +86,7 @@ class Add extends React.Component {
     const form = document.forms.addTraveller;
     if(this.checkinput(form)){
       if(this.props.bookTraveller(form))
-        this.setState({message:'successfully booked! '})
+        this.setState({message:'successfully booked! name: '+form.travellername.value+' phone number: '+form.travellerphone.value})
       else
         this.setState({message:'duplicated or exceed maxium seats '})
     }
