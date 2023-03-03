@@ -32,4 +32,5 @@ matrix: A0254113U
 - just as Q2 mentioned
 
 #### Q7
---a global variable seat_num and a partition in App.jsx file. to test corner case.  
+- a global variable seat_num in App.jsx file. to test corner case.  
+- and a global variable partition in App.jsx file to control the display.
