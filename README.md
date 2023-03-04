@@ -1,36 +1,28 @@
-student name: Zeng lidong  
-matrix: A0254113U  
+## Point Cloud Editor
 
+web端点云数据可视化编辑器
 
-#### Q1
-- added atrribute gender.  
+## 模块说明
 
-#### Q2
-- navigating bar implemented. 
-  1. display free seats and number, the occupancy of seats is randomized  
-  2. display travellers' information  
-  3. add travellers through name  
-  4. delete travellers through name  
-- home page to show free seats and number, ramdom occupancy.  
+## 文件结构
 
-#### Q3 
-- shows the detailed information of travellers in second page. shown as table  
+│  README.md<br/>
+├─Backend<br/>
+│  ├─Resource（项目资源，pcd文件，图片等）<br/>
+│  │  ├─pcd（pcd文件目录）<br/>
+│  │  └─pics（图片文件目录）<br/>
+│  └─Utils（工具类）<br/>
+├─Doc（文档）<br/>
+│  ├─Reference<br/>
+│  └─Report<br/>
+└─Frontend<br/>
 
-#### Q4 
-- add new traveller by name, phone, gender, update to the list variable. 
-- check whether the name is duplicated. check whether exceed 10 maximum. the passenger is distinguished by name and phone number.  
-- also check valid input, name only consist of blankspace and characters
-- phone number only accepts 8-digits.
-- message to tell whether added succfully.  
+## 代码规范
 
-#### Q5 
-- delete travellers by id.  
-- check whether the id are in the list. provide user message.  
+### 提交规范
 
-#### Q6
-- a visiual representation of occupied and free seats.
-- just as Q2 mentioned
+- 标注好commit的内容，主要为本次提交的内容和TODO的事项
+- 开发到一半，还没有开发完或者需要补充逻辑的地方，请用TODO标注
+- 每次开始写代码前记得fetch，push前记得fetch
+- 重点！第一次拉取的时候拉dev分支，开发都放在dev分支上，每次会议前更新一次main分支
 
-#### Q7
-- a global variable seat_num in App.jsx file. to test corner case.  
-- and a global variable partition in App.jsx file to control the display.
