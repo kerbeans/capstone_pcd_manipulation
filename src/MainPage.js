@@ -5,7 +5,8 @@ import React from "react";
 const dummyListData=[
     {id:1,fileName:'zeghtti.pcd'},
     {id:2,fileName:'globalMap.pcd'},
-    {id:3,fileNmae:'mushapotei.pcd'},
+    {id:3,fileName:'mushapotei.pcd'},
+    {id:4,fileName:'npx.lac'}
 ]
 
 class MainPage extends React.Component{
@@ -15,16 +16,14 @@ class MainPage extends React.Component{
         this.selectButtonHandler=this.selectButtonHandler.bind(this);
         this.searchButtonHandler=this.searchButtonHandler.bind(this);
         this.handleFileChangeLocal=this.handleFileChangeLocal.bind(this);
+        this.uploadFile=this.uploadFile.bind(this);
     }
     componentDidMount(){
         this.loadData(dummyListData);
     }
     loadData(listData){
         // load data
-
-        console.log(listData,"gg");
         this.setState({searchList:listData});
-        console.log('heihei',this.state.searchList);
     }
     searchButtonHandler(){
 
@@ -33,7 +32,18 @@ class MainPage extends React.Component{
         this.setState({displayedItem:item});
     }
     uploadFile(){
+        //  first add to searchList for displaying 
+        if(this.state.displayedItem.fileName===''){
+                ;
+        }
+        else{
 
+            const id =this.state.searchList.length+1;
+            this.state.searchList.push({
+                id:id,
+                fileName:this.state.displayedItem.fileName
+            });
+        }
     }
     openFromLocal(){
         const localFile=document.getElementById('read_file');
@@ -45,8 +55,9 @@ class MainPage extends React.Component{
     handleFileChangeLocal(event){
         const filePath = event.target.value; 
         var fileName=filePath.split('\\');
-        var fileType=fileName.split('.');
         fileName=fileName[fileName.length-1];
+
+        var fileType=fileName.split('.');
         fileType=fileType[fileType.length-1];
         this.setState({message:String(fileName)});
         this.setState({displayedItem:{fileType:fileType,fileName:filePath}});
@@ -54,6 +65,7 @@ class MainPage extends React.Component{
 
 
     render(){
+        //console.log('?',this.props.searchList);
         return <div>
             {/* this is the header panel*/}
             <div >
