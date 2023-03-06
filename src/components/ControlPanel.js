@@ -43,6 +43,7 @@ class ControlPanel extends React.Component{
         // var iframe = document.getElementById("viewer").contentWindow.document;
         const a=document.createElement('h1');
         this.iframe.appendChild(a);
+        document.body.appendChild(this.renderer.domElement);
         console.log(this.iframe,'render');
 
         
@@ -118,7 +119,7 @@ class ControlPanel extends React.Component{
        
        
         this.renderer.render( this.scene, this.camera );
-        return <div dangerouslySetInnerHTML={{__html: '<canvas/>'}}>{this.renderer.domElement}</div>;
+        return 0;
     }
     
 }
