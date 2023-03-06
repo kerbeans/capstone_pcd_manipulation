@@ -65,7 +65,7 @@ class SearchPanel extends React.Component{
     spSelectHandler(id){
         for(var i in this.props.searchList){
             const iter =this.props.searchList[i];
-            if(id==iter.id){
+            if(id===iter.id){
                 this.props.selectButtonHandler(id);
                 break;
             }
