@@ -1,8 +1,11 @@
 import React from "react";
 
 class ResultShower extends React.Component{
+    constructor(props){
+        super(props);
+    }
     render(){
-        console.log(this.props.showItem,'hei');
+        console.log(this.props.showItem,'fin');
         var showItem=[]
         if(this.props.showItem===undefined){
             ;
@@ -70,7 +73,7 @@ class SearchPanel extends React.Component{
     }
     
     render(){
-
+       // console.log(this.state.showItem);
 
         return (<div>
             <div>

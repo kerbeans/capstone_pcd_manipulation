@@ -2,13 +2,13 @@ import SearchPanel from "./components/SearchPanel";
 import ControlPanel from "./components/ControlPanel";
 import React from "react";
 
+
 const dummyListData=[
     {id:1,fileName:'zeghtti.pcd'},
     {id:2,fileName:'globalMap.pcd'},
     {id:3,fileName:'mushapotei.pcd'},
     {id:4,fileName:'npx.lac'}
 ]
-
 class MainPage extends React.Component{
     constructor(){
         super();
@@ -37,12 +37,14 @@ class MainPage extends React.Component{
                 ;
         }
         else{
-
             const id =this.state.searchList.length+1;
-            this.state.searchList.push({
+            const item={
                 id:id,
                 fileName:this.state.displayedItem.fileName
-            });
+            }
+            this.setState({
+                searchList:[... this.state.searchList, item]
+            })
         }
     }
     openFromLocal(){
@@ -93,7 +95,7 @@ class MainPage extends React.Component{
                 <button onClick={this.openFromLocal}>open from local</button>
                 <button onClick={this.uploadFile}>upload to server</button>
                 <input style={{display: 'none'}} id="save_file" type="file" onChange={this.handleFileChangeLocal}/>
-                <button onClick={this.saveToLocal}>save to local</button>
+                <button onClick={this.saveToLocal}>download</button>
             </div>
         </div>
     }
