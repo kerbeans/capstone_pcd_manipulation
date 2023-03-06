@@ -13,7 +13,10 @@ import { GUI } from '../../node_modules/three/examples/jsm/libs/lil-gui.module.m
 class ControlPanel extends React.Component{
     constructor(){
         super();
-        
+        this.iframe=document.createElement('iframe');
+        var html='<body></body>';
+        this.iframe.src = 'data:text/html;charset=utf-8,';//+ encodeURI(html);
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         this.renderer = new THREE.WebGLRenderer();
@@ -37,7 +40,11 @@ class ControlPanel extends React.Component{
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( this.renderer.domElement );
+        // var iframe = document.getElementById("viewer").contentWindow.document;
+        const a=document.createElement('h1');
+        this.iframe.appendChild(a);
+        console.log(this.iframe,'render');
+
         
         //screen init
         // this.scene = new THREE.Scene();
@@ -111,8 +118,7 @@ class ControlPanel extends React.Component{
        
        
         this.renderer.render( this.scene, this.camera );
-        console.log(9);
-        return 0;
+        return <div dangerouslySetInnerHTML={{__html: '<canvas/>'}}>{this.renderer.domElement}</div>;
     }
     
 }

@@ -70,12 +70,12 @@ class MainPage extends React.Component{
         //console.log('?',this.props.searchList);
         return <div>
             {/* this is the header panel*/}
-            <div >
+            <div id="header">
                 <h1>open4vision</h1>
             </div>
             <div style={{"width":'100%'}}>
             {/* blow is the  searchPanel,main*/}
-                <div style={{"width":"30%","display":'inline',"float":"left","backgroundColor":'red'}}>
+                <div style={{"width":"30%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
                 {/* write the search list here searchPanel*/}
                     <h1>dummy search list</h1>
                     < SearchPanel searchList={this.state.searchList} searchButtonHandler={this.searchButtonHandler} selectButtonHandler={this.selectButtonHandler}/>

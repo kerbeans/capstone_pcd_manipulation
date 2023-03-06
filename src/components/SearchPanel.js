@@ -5,7 +5,6 @@ class ResultShower extends React.Component{
         super(props);
     }
     render(){
-        console.log(this.props.showItem,'fin');
         var showItem=[]
         if(this.props.showItem===undefined){
             ;
