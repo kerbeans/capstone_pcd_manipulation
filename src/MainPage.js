@@ -1,5 +1,8 @@
 import SearchPanel from "./components/SearchPanel";
 import ControlPanel from "./components/ControlPanel";
+import Testpanel from "./components/Testpanel";
+import { Layout, Space, FloatButton } from "antd";
+import { QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import React from "react";
 
 
@@ -9,6 +12,23 @@ const dummyListData=[
     {id:3,fileName:'mushapotei.pcd'},
     {id:4,fileName:'npx.lac'}
 ]
+const {Sider, Content } = Layout;
+
+const contentStyle = {
+    textAlign: 'center',
+    minHeight: 1400,
+    lineHeight: '120px',
+    color: '#fff',
+    backgroundColor: '#1E1E1E',
+};
+const siderStyle = {
+    textAlign: 'center',
+    lineHeight: '120px',
+    minHeight: 360,
+    color: '#fff',
+    backgroundColor: '#252526',
+};
+
 class MainPage extends React.Component{
     constructor(){
         super();
@@ -69,6 +89,29 @@ class MainPage extends React.Component{
     render(){
         //console.log('?',this.props.searchList);
         return <div>
+                <Space
+                direction="vertical"
+                style={{
+                    width: '100%'
+                }}
+                size={[0, 48]}
+            >
+                <Layout>
+                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
+                        <h1>open4vision</h1>
+                    </Sider>
+                    <Layout height={'100%'}>
+                        <Content style={contentStyle}>
+                            <Testpanel></Testpanel>
+                            <FloatButton onClick={this.openFromLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 50 }} />
+                            <FloatButton onClick={this.uploadFile} icon={<QuestionCircleOutlined />} type="default" style={{ right: 100 }} />
+                            <FloatButton onClick={this.saveToLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 150 }} />
+                        </Content>
+                    </Layout>
+                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
+                    </Sider>
+                </Layout>   
+            </Space>
             {/* this is the header panel*/}
             <div id="header">
                 <h1>open4vision</h1>
