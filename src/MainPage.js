@@ -67,7 +67,7 @@ class MainPage extends React.Component{
         // load data
         this.setState({serverFiles:listData});
     }
-    
+
     uploadFile(item){
         //  first add to searchList for displaying 
         for(var i in this.state.serverFiles){
@@ -81,7 +81,7 @@ class MainPage extends React.Component{
     }
     render(){
         return <div>
-                <Space
+                {/* <Space
                 direction="vertical"
                 style={{
                     width: '100%'
@@ -102,27 +102,26 @@ class MainPage extends React.Component{
                     <Sider  width={'10%'} height={'100%'} style={siderStyle}>
                     </Sider>
                 </Layout>   
-            </Space>
+            </Space> */}
             {/* this is the header panel*/}
             <div id="header">
                 <h1>open4vision</h1>
             </div>
             <div style={{"width":'100%'}}>
             {/* blow is the  searchPanel,main*/}
-                <div style={{"width":"30%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
+                <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
                 {/* write the search list here searchPanel*/}
-                    <h1>dummy search list</h1>
                     < SearchPanel serverFiles={this.state.serverFiles} 
                     workingFiles={this.state.workingFiles} 
                     filterServerFiles={this.filterServerFiles}
                     uploadFile={this.uploadFile}
                     />
                 </div>
-                <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
-                    {/* write the control panel here controlPanel */}
+                {/* <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
+                    {/* write the control panel here controlPanel 
                     <h1>dummy control panel</h1>
                     <ControlPanel displayedItem={this.state.displayedItem}/>
-                </div>
+                </div> */}
             </div>
             <div style={{"clear":"both","backgroundColor":"yellow"}}>
                 {/* write the foot print here, and the fromfile, upload, savetolocal button*/}

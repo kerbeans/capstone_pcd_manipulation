@@ -1,8 +1,8 @@
 import {memo, useState, useCallback,useMemo} from 'react'
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-
-
+import Testpanel from './Testpanel';
+import { Layout, Space, FloatButton, Alert } from "antd";
 
 
 // props.fileToWorkspaceHandler # drag file from server to workspace
@@ -12,7 +12,23 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 // props.tickIdx # select which to be editted on
 
 
+const {Sider, Content } = Layout;
 
+const contentStyle = {
+    textAlign: 'center',
+    minHeight: 1400,
+    lineHeight: '120px',
+    color: '#fff',
+    backgroundColor: '#1E1E1E',
+};
+const siderStyle = {
+    // textAlign: 'center',
+    // lineHeight: '120px',
+    // minHeight: 360,
+    // minWidth:360,
+    // color: '#fff',
+     backgroundColor: '#CCCCCC',
+};
 
 const dummyStyle = {
     border: "1px dashed gray",
@@ -146,50 +162,68 @@ export default memo(function SearchPanel(props){
     },[workingFiles])
 
     return(
-        <div className="left">
-        <DndProvider backend={HTML5Backend}>
-            <label>workspace </label>
+      <Space
+        direction="vertical"
+        style={{
+          width: '100%'
+          }}
+          size={[0, 48]}>
+        <Layout>
+          <Sider  width={'20%'} height={'100%'} style={siderStyle}>
+            <DndProvider backend={HTML5Backend}>
+                <label >workspace </label>
 
-            <input style={{display: 'none'}} id="read_file" type="file" onChange={(event)=>{
-              const filePath = event.target.value; 
-              var fileName=filePath.split('\\');
-              fileName=fileName[fileName.length-1];        
-              var fileType=fileName.split('.');
-              fileType=fileType[fileType.length-1];
-              const item={
-                id:Math.floor(Math.random()*1000),
-                fileName:fileName,
-                filePath:filePath,
-                display:false
-              }
-              setWrokingFiles([...workingFiles,item]);
+                <input style={{display: 'none'}} id="read_file" type="file" onChange={(event)=>{
+                  const filePath = event.target.value; 
+                  var fileName=filePath.split('\\');
+                  fileName=fileName[fileName.length-1];        
+                  var fileType=fileName.split('.');
+                  fileType=fileType[fileType.length-1];
+                  const item={
+                    id:Math.floor(Math.random()*1000),
+                    fileName:fileName,
+                    filePath:filePath,
+                    display:false
+                  }
+                  setWrokingFiles([...workingFiles,item]);
 
-            }}/>
-            <button onClick={()=>{
-                  const localFile=document.getElementById('read_file');
-                  localFile.click();
-              }}>open</button>
-            <Container 
-              onDrop={toWorkspace}
-              contents={workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} />))}
-              accept={'search'}
-             />
-            <div>
-                {/* server list  */}
-                <form name='keywordFilter' onSubmit={(e)=>{
-                    e.preventDefault();
-                    const txt= document.forms.keywordFilter.keywordFilter_text.value;
-                    props.filterServerFiles(txt);
-                }}>
-                    <input type="text" name="keywordFilter_text"></input>
-                    <button>btn</button>
-                </form>
+                }}/>
+                <button onClick={()=>{
+                      const localFile=document.getElementById('read_file');
+                      localFile.click();
+                  }}>open</button>
                 <Container 
-                  onDrop={toServer}
-                  contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx}></SearchItem>))}
-                  accept={'work'}
+                  onDrop={toWorkspace}
+                  contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} />))}
+                  accept={'search'}
                 />
-            </div>
-        </DndProvider>
-      </div>)
+                <div>
+                    {/* server list  */}
+                    <form name='keywordFilter' onSubmit={(e)=>{
+                        e.preventDefault();
+                        const txt= document.forms.keywordFilter.keywordFilter_text.value;
+                        props.filterServerFiles(txt);
+                    }}>
+                        <input type="text" name="keywordFilter_text"></input>
+                        <button>search</button>
+                    </form>
+                    <Container 
+                      onDrop={toServer}
+                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx}></SearchItem>))}
+                      accept={'work'}
+                    />
+                </div>
+            </DndProvider>
+          </Sider>
+          <Layout>
+            <Content>
+              <Testpanel/>
+            </Content>
+          </Layout>
+            <Sider width={'20%'} style={siderStyle}>
+              <h1>control panel</h1>
+            </Sider>
+
+        </Layout>
+      </Space>)
 })
