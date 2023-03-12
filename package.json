@@ -8,8 +8,12 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.3.0",
     "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
+    "react-sortablejs": "^6.1.4",
+    "sortablejs": "^1.15.0",
     "three": "^0.150.1",
     "web-vitals": "^2.1.4"
   },
@@ -35,5 +39,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "Class MainPage  - attributes: 1. state.searchList:[] # maintain the files info fetch from server, a file category, will be passed though SearchPanel and ResultShower 2. state.displayedItem:{fileType:str,fileName:str,filePath?} # record the info of file that will be shown on controlPanel, and will be passed through. currently only support single file, convert to [] when we need to merge pcd.   - function: 1. openFromLocal # btn, open .pcd, .lac file from local, trigger setState(displayedItem) 2. uploadToSever # btn, upload current DisplayedItem to the server, trigger setState(searchList) 3. saveAs # btn, save the current DsiplayedItem to localfile. - handler: 1. SelectBtnHandler # pass through SearchPanel to ResultShower. trigger set state displayedItem.",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
 }
