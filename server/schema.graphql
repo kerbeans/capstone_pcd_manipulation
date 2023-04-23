@@ -1,0 +1,29 @@
+scalar GraphQLDate
+
+type pointFile{
+    id: Int!
+    fileName: String!
+    filePath: String!
+    modifiedDate: GraphQLDate!
+}
+
+type PointJson{
+    fileName:Stirng!
+    rotate:Double,
+    Point:[Double]!
+}
+
+type Query(){
+    fileList(userid:String!,filterKey:String!,page:Int!):[pointFile]
+};
+
+type Mutation(){
+    fileAdd(userid:String!,pointcloudFile:pointFile!):pointFile!
+    downloadFile(fileName):PointJson
+    uploadFile(pointJson):Boolean!
+}
+
+
+
+
+

@@ -51,8 +51,8 @@ class MainPage extends React.Component{
         this.filterServerFiles=this.filterServerFiles.bind(this);
         this.uploadFile=this.uploadFile.bind(this);
     }
-    filterServerFiles(searchKey){
-        const original=dummyListData;
+    filterServerFiles(searchKey){// searchkey ,page
+        const original=dummyListData;// request_from_sever
         var filteredList=[];
         for(var i in original){
             if(original[i].fileName.search(searchKey)+1)
@@ -61,11 +61,12 @@ class MainPage extends React.Component{
         this.setState({serverFiles:filteredList});
     }
     componentDidMount(){
-        this.loadData(dummyListData);
+        this.loadData();
     }
-    loadData(listData){
-        // load data
-        this.setState({serverFiles:listData});
+    loadData(){
+        // load data request from server.
+        this.setState({serverFiles:dummyListData});
+        // filterSeverFiles("",1)
     }
 
     uploadFile(item){
@@ -76,36 +77,37 @@ class MainPage extends React.Component{
                 return false;
             }
         }
+        //console.log('upload',document.querySelector('#uploadfile').value);
+        //document.querySelector('#uploadfile').value=item.fileName;
+
+        //this.loadData();
         this.setState({serverFiles:[...this.state.serverFiles,item]});
         return true;
     }
     render(){
         return <div>
-                {/* <Space
-                direction="vertical"
-                style={{
-                    width: '100%'
-                }}
-                size={[0, 48]}
-            >
-                <Layout>
-                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
-                    </Sider>
-                    <Layout height={'100%'}>
-                        <Content style={contentStyle}>
-                            <Testpanel></Testpanel>
-                            <FloatButton onClick={this.openFromLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 50 }} />
-                            <FloatButton onClick={this.uploadFile} icon={<QuestionCircleOutlined />} type="default" style={{ right: 100 }} />
-                            <FloatButton onClick={this.saveToLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 150 }} />
-                        </Content>
-                    </Layout>
-                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
-                    </Sider>
-                </Layout>   
-            </Space> */}
-            {/* this is the header panel*/}
+
             <div id="header">
                 <h1>open4vision</h1>
+                {/* a invisible input button to upload local file to sever*/}
+                <input type='file' id='uploadfile' style={{display:'none'}}  onChange={(e)=>{
+                    e.preventDefault();
+                    const files = e.target.files
+                    const formData = new FormData()
+                    formData.append('myFile', files[0])
+                  
+                    fetch('/data', {
+                      method: 'POST',
+                      body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                      console.log(data.path)
+                    })
+                    .catch(error => {
+                      console.error(error)
+                    })
+                }}/>
             </div>
             <div style={{"width":'100%'}}>
             {/* blow is the  searchPanel,main*/}
@@ -117,11 +119,6 @@ class MainPage extends React.Component{
                     uploadFile={this.uploadFile}
                     />
                 </div>
-                {/* <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
-                    {/* write the control panel here controlPanel 
-                    <h1>dummy control panel</h1>
-                    <ControlPanel displayedItem={this.state.displayedItem}/>
-                </div> */}
             </div>
             <div style={{"clear":"both","backgroundColor":"yellow"}}>
                 {/* write the foot print here, and the fromfile, upload, savetolocal button*/}

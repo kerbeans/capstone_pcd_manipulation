@@ -5,12 +5,6 @@ import Testpanel from './Testpanel';
 import { Layout, Space, FloatButton, Alert } from "antd";
 
 
-// props.fileToWorkspaceHandler # drag file from server to workspace
-// props.fileUploadHandler # drag file from workspace to server
-// props.closeFileHandler # close the working file
-// props.tickDisplayHandler # set display attribute on wokingFiles
-// props.tickIdx # select which to be editted on
-
 
 const {Sider, Content } = Layout;
 
@@ -134,9 +128,6 @@ function deleteItem(item,list,key){
   return newList;
 }
 
-
-
-
 export default memo(function SearchPanel(props){
 
     const [workingFiles, setWrokingFiles]=useState([]);
@@ -197,13 +188,14 @@ export default memo(function SearchPanel(props){
                   contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} />))}
                   accept={'search'}
                 />
-                <div>
+                <div  style={{'overflow-y':'scroll'}}>
                     {/* server list  */}
                     <form name='keywordFilter' onSubmit={(e)=>{
                         e.preventDefault();
                         const txt= document.forms.keywordFilter.keywordFilter_text.value;
                         props.filterServerFiles(txt);
                     }}>
+                      <label>cloud</label>
                         <input type="text" name="keywordFilter_text"></input>
                         <button>search</button>
                     </form>
@@ -212,6 +204,14 @@ export default memo(function SearchPanel(props){
                       contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx}></SearchItem>))}
                       accept={'work'}
                     />
+                </div>
+                <div>
+                    <button>1</button>
+                    <button>preivous</button>
+                    <input type="number" min="1"></input>
+                    <button>turn to</button>
+                    <button>next</button>
+                    <button></button>
                 </div>
             </DndProvider>
           </Sider>
