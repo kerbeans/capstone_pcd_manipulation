@@ -1,4 +1,4 @@
-import {memo, useState, useCallback,useMemo} from 'react'
+import {memo, useState, useCallback,useMemo,useRef} from 'react'
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Testpanel from './Testpanel';
@@ -39,7 +39,7 @@ const dummyStyle = {
 
 
 
-const WorkspaceItem= memo(function WorkspaceItem({info,children}){
+const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange, isSelected}){
     const [{ isDragging }, drag] = useDrag(
       () => ({
         type: 'work',
@@ -59,9 +59,16 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children}){
       }),
       [isDragging]
     );
+
+    const handleCheckboxChange = (event) => {
+      if (onCheckboxChange) {
+        onCheckboxChange(info, event.target.checked);
+      }
+    };
+
     return (
       <div ref={drag} style={style}>
-        <input type="checkbox"/>
+        <input type="checkbox" onChange={handleCheckboxChange} checked={isSelected}/>
         <small>{info.id} </small>
         <small>{info.fileName}*</small>
       </div>
@@ -121,6 +128,8 @@ const Container=memo( function Container({onDrop,contents,accept}){
     )
 });
 
+
+//删除物件
 function deleteItem(item,list,key){
   let newList=[];
   console.log('init',item,list);
@@ -136,11 +145,11 @@ function deleteItem(item,list,key){
 
 
 
-
-export default memo(function SearchPanel(props){
-
+export default function SearchPanel(props){
+    const ref = useRef(null);
     const [workingFiles, setWrokingFiles]=useState([]);
-
+    const [checkFiles, setCheckFiles]=useState(null);
+    const [selectedId, setSelectedId] = useState(null);
     const toWorkspace=useCallback((item)=>{
       const newitem={...item.info,display:false}
       for(var i in workingFiles){
@@ -161,6 +170,18 @@ export default memo(function SearchPanel(props){
 
     },[workingFiles])
 
+    const handleCheckboxChange = (info, isChecked) => {
+      console.log("Checkbox changed in parent:", info, isChecked);
+      setSelectedId(isChecked ? info.id : null);
+      setCheckFiles(info);
+    };
+
+    const handleDownload=()=>{
+      ref.current.saveModelbyName();
+    }
+
+    console.log("search panel")
+    console.log("father",workingFiles)
     return(
       <Space
         direction="vertical"
@@ -172,7 +193,6 @@ export default memo(function SearchPanel(props){
           <Sider  width={'20%'} height={'100%'} style={siderStyle}>
             <DndProvider backend={HTML5Backend}>
                 <label >workspace </label>
-
                 <input style={{display: 'none'}} id="read_file" type="file" onChange={(event)=>{
                   const filePath = event.target.value; 
                   var fileName=filePath.split('\\');
@@ -192,9 +212,10 @@ export default memo(function SearchPanel(props){
                       const localFile=document.getElementById('read_file');
                       localFile.click();
                   }}>open</button>
+                <button onClick={handleDownload}>download</button>
                 <Container 
                   onDrop={toWorkspace}
-                  contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} />))}
+                  contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} onCheckboxChange={handleCheckboxChange} isSelected={selectedId === item.id}/>))}
                   accept={'search'}
                 />
                 <div>
@@ -217,13 +238,10 @@ export default memo(function SearchPanel(props){
           </Sider>
           <Layout>
             <Content>
-              <Testpanel/>
+              <Testpanel workingFiles={workingFiles} checkFiles={checkFiles} ref={ref}/>
             </Content>
           </Layout>
-            <Sider width={'20%'} style={siderStyle}>
-              <h1>control panel</h1>
-            </Sider>
 
         </Layout>
       </Space>)
-})
+}

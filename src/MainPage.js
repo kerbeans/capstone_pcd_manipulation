@@ -7,8 +7,8 @@ import React from "react";
 
 
 const dummyListData=[
-    {id:1,fileName:'zeghtti.pcd',filePath:'/abc/zeghtti.pcd'},
-    {id:2,fileName:'globalMap.pcd',filePath:'/ddd/globalMap.pcd'},
+    {id:1,fileName:'horse.pcd',filePath:'/abc/zeghtti.pcd'},
+    {id:2,fileName:'Zaghetto.pcd',filePath:'/ddd/globalMap.pcd'},
     {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd'},
     {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac'}
 ]
@@ -43,14 +43,11 @@ class MainPage extends React.Component{
     constructor(){
         super();
         this.state={serverFiles:[],displayedItem:{fileType:'pcd',fileName:''},workingFiles:[],message:''};
-        this.init()
-    }
-    init(){
-   
         this.loadData=this.loadData.bind(this);
         this.filterServerFiles=this.filterServerFiles.bind(this);
         this.uploadFile=this.uploadFile.bind(this);
     }
+
     filterServerFiles(searchKey){
         const original=dummyListData;
         var filteredList=[];
@@ -104,9 +101,6 @@ class MainPage extends React.Component{
                 </Layout>   
             </Space> */}
             {/* this is the header panel*/}
-            <div id="header">
-                <h1>open4vision</h1>
-            </div>
             <div style={{"width":'100%'}}>
             {/* blow is the  searchPanel,main*/}
                 <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
@@ -122,10 +116,6 @@ class MainPage extends React.Component{
                     <h1>dummy control panel</h1>
                     <ControlPanel displayedItem={this.state.displayedItem}/>
                 </div> */}
-            </div>
-            <div style={{"clear":"both","backgroundColor":"yellow"}}>
-                {/* write the foot print here, and the fromfile, upload, savetolocal button*/}
-                <h1 >dummy footprint</h1>
             </div>
         </div>
     }
