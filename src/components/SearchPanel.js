@@ -2,7 +2,7 @@ import {memo, useState, useCallback,useMemo} from 'react'
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Testpanel from './Testpanel';
-import { Layout, Space, FloatButton, Alert } from "antd";
+import { Layout, Space, FloatButton, Alert, Input } from "antd";
 
 
 
@@ -33,7 +33,7 @@ const dummyStyle = {
 
 
 
-const WorkspaceItem= memo(function WorkspaceItem({info,children}){
+const WorkspaceItem= memo(function WorkspaceItem({info,changeDisplay}){
     const [{ isDragging }, drag] = useDrag(
       () => ({
         type: 'work',
@@ -55,9 +55,14 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children}){
     );
     return (
       <div ref={drag} style={style}>
-        <input type="checkbox"/>
+        <input type="checkbox" onChange={()=>{
+          console.log('click');
+          changeDisplay();
+          
+          }}/>
         <small>{info.id} </small>
         <small>{info.fileName}*</small>
+        <button onClick={()=>{}}>Del</button>
       </div>
     );
 });
@@ -83,6 +88,8 @@ const SearchItem=memo(function SearchItem({info}){
         <div ref={drag} style={style} role={'SourceBox'}>
         <small>{info.id} </small>
         <small>{info.fileName}</small>
+        {/* <input type='text'  onChange={()=>{alert("123");}} defaultValue={info.fileName}/> */}
+        <button >Del</button>
     </div>
     );
 });
@@ -119,7 +126,7 @@ function deleteItem(item,list,key){
   let newList=[];
   console.log('init',item,list);
   for(var i in list){
-    console.log(item[key],list[i][key],'what');
+    // console.log(item[key],list[i][key],'what');
     if(item[key]!=list[i][key]){
       newList.push(list[i]);
     }
@@ -140,7 +147,6 @@ export default memo(function SearchPanel(props){
       }
       setWrokingFiles([...workingFiles,newitem]);
     },[workingFiles]);
-
     const toServer=useCallback((item)=>{
       const newItem={
         id:item.info.id,
@@ -151,7 +157,6 @@ export default memo(function SearchPanel(props){
         setWrokingFiles(deleteItem(newItem,workingFiles,'id'));
 
     },[workingFiles])
-
     return(
       <Space
         direction="vertical"
@@ -183,12 +188,41 @@ export default memo(function SearchPanel(props){
                       const localFile=document.getElementById('read_file');
                       localFile.click();
                   }}>open</button>
+
                 <Container 
                   onDrop={toWorkspace}
-                  contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} />))}
+                  contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} 
+                    changeDisplay={()=>{
+                      item.display=! item.display;
+                      // console.log(workingFiles)
+                  }}
+                    changeFilename={(nname)=>{
+                      if (!/^[^\s\\]+\.pcd$/.test(nname)){
+                        alert('invalid filename');
+                        return;
+                      }
+                      else{
+                        for(var i in workingFiles){
+                          if(i.fileName===nname){
+                            if(nname===item.fileName)
+                              return
+                            else{
+                              alert('duplicated name');
+                              return;
+                            }
+                          }
+                        }
+                        item.name=nname;
+                      }
+
+                      }
+                    }
+                    />))}
+
                   accept={'search'}
                 />
-                <div  style={{'overflow-y':'scroll'}}>
+      
+                <div  style={{'overflowY':'scroll'}}>
                     {/* server list  */}
                     <form name='keywordFilter' onSubmit={(e)=>{
                         e.preventDefault();
@@ -201,7 +235,7 @@ export default memo(function SearchPanel(props){
                     </form>
                     <Container 
                       onDrop={toServer}
-                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx}></SearchItem>))}
+                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx} ></SearchItem>))}
                       accept={'work'}
                     />
                 </div>

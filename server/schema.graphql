@@ -1,26 +1,38 @@
 scalar GraphQLDate
 
-type pointFile{
+type pointFileDesc{
     id: Int!
     fileName: String!
     filePath: String!
     modifiedDate: GraphQLDate!
 }
 
-type PointJson{
+type PointData{
     fileName:Stirng!
-    rotate:Double,
-    Point:[Double]!
+    header:{
+        '#':String!
+        VERSION:Double!
+        FIELDS:String!
+        TYPE:String!
+        COUNT:Int!
+        WIDTH:Int!
+        HEIGHT:Int!
+        VIEWPOINT:String!
+        POINTS:Int!
+        DATA:String!
+    }
+    pointCloudData:[{x:Double!,y:Double!,z:double!}]
 }
 
 type Query(){
-    fileList(userid:String!,filterKey:String!,page:Int!):[pointFile]
+    fileList(userid:Int!,filterKey:String!,page:Int!):[pointFileDesc]
 };
 
 type Mutation(){
-    fileAdd(userid:String!,pointcloudFile:pointFile!):pointFile!
-    downloadFile(fileName):PointJson
-    uploadFile(pointJson):Boolean!
+    chageFileName(userid:Int!,oriName:String!,newName:String!):Boolean!
+    deleteFile(userid:Int!,fileName:String!):Boolean!
+    downloadFile(userid:Int!,fileName:String!):PointData!
+    uploadFile(userid:Int!,pointd:PointData!):Int!
 }
 
 

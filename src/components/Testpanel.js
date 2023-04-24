@@ -38,18 +38,18 @@ class Testpanel extends React.Component{
         this.controls.minDistance = 0.5;
         this.controls.maxDistance = 100;
 
-        this.loader.load( 'http://localhost:3000/horse.pcd', this.loaderfun);
-        console.log(this.loader)
+        this.loader.load( 'http://localhost:3000/data/0/horse_n.pcd', this.loaderfun);
+        // console.log(this.loader)
         window.addEventListener( 'resize', this.onWindowResize() );
-        console.log("asd1q2we12")
+        // console.log("asd1q2we12")
     }
 
     loaderfun = (points) => {
         points.geometry.center(0,0,0);
         points.geometry.rotateX( Math.PI );
-        console.log(points);
+        // console.log(points);
         // points.name =this.filePathName;
-        console.log("asdasd")
+        // console.log("asdasd")
         this.scene.add(points);
         var middle = new THREE.Vector3();
         points.geometry.computeBoundingBox();
@@ -133,7 +133,7 @@ class Testpanel extends React.Component{
 
     ownrender(){
         //console.log(this.renderer)
-        console.log(this.camera.position);
+     //  console.log(this.camera.position);
         this.renderer.render(this.scene, this.camera);
     }
 

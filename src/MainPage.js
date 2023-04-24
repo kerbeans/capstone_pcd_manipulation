@@ -7,19 +7,11 @@ import React from "react";
 
 
 const dummyListData=[
-    {id:1,fileName:'zeghtti.pcd',filePath:'/abc/zeghtti.pcd'},
-    {id:2,fileName:'globalMap.pcd',filePath:'/ddd/globalMap.pcd'},
-    {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd'},
-    {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac'}
+    {id:1,fileName:'zeghtti.pcd',filePath:'/abc/zeghtti.pcd',display:false},
+    {id:2,fileName:'globalMap.pcd',filePath:'/ddd/globalMap.pcd',display:false},
+    {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd',display:false},
+    {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac',display:false}
 ]
-const dummyworkingFiles=[
-    {id:5,fileName:'zeghtti2.pcd',filePath:'/abc/zeghtti.pcd',display:false},
-    {id:6,fileName:'globalMap2.pcd',filePath:'/ddd/globalMap.pcd',display:true},
-    {id:7,fileName:'mushapotei2.pcd',filePath:'mushapotei.pcd',display:false},
-    {id:8,fileName:'npx.lac2',filePath:'/bs/npx.lac',display:false}
-]
-
-
 
 const {Sider, Content } = Layout;
 
@@ -50,9 +42,14 @@ class MainPage extends React.Component{
         this.loadData=this.loadData.bind(this);
         this.filterServerFiles=this.filterServerFiles.bind(this);
         this.uploadFile=this.uploadFile.bind(this);
+        this.deleteFile=this.deleteFile.bind(this);
     }
     filterServerFiles(searchKey){// searchkey ,page
         const original=dummyListData;// request_from_sever
+
+
+
+        
         var filteredList=[];
         for(var i in original){
             if(original[i].fileName.search(searchKey)+1)
@@ -68,7 +65,9 @@ class MainPage extends React.Component{
         this.setState({serverFiles:dummyListData});
         // filterSeverFiles("",1)
     }
+    deleteFile(item){
 
+    }
     uploadFile(item){
         //  first add to searchList for displaying 
         for(var i in this.state.serverFiles){
@@ -78,6 +77,7 @@ class MainPage extends React.Component{
             }
         }
         //console.log('upload',document.querySelector('#uploadfile').value);
+        console.log(item,'ote,');
         //document.querySelector('#uploadfile').value=item.fileName;
 
         //this.loadData();
@@ -117,6 +117,7 @@ class MainPage extends React.Component{
                     workingFiles={this.state.workingFiles} 
                     filterServerFiles={this.filterServerFiles}
                     uploadFile={this.uploadFile}
+                    deleteFile={this.deleteFile}
                     />
                 </div>
             </div>

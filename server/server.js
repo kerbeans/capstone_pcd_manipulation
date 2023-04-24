@@ -1,4 +1,4 @@
-import fileManipulation from './fileEntity';
+import fileManipulator from './fileEntity';
 
 
 const fs =require('fs');
@@ -8,8 +8,8 @@ const {GraphQLScalarType} = require('graphql');
 const {MongoClient} = require('mongodb');
 const {Kind} =require('graphql/language');
 const FILEPATH='./data'
-
-const fm=fileManipulation(FILEPATH,0)
+let db
+const fm=fileManipulator(FILEPATH,0)
 
 const GraphQLDate = new GraphQLScalarType({
     name: 'GraphQLDate',
@@ -31,23 +31,43 @@ const GraphQLDate = new GraphQLScalarType({
   });
 
 
-async function fileList(_,{userid,filterKey,page}){
-    return db.connection('pointFiles').findMany({$contain:{fileName:filterKey}}).toArray().slice((page-1)*10,page*10);
+async function fileList(_,{userid,filterKey,page}){//finished 
+    return db.connection('pointFiles').findMany({$contain:{fileName:filterKey}}).toArray().slice((page-1)*10,page*10).toArray();
 }
 
-function fileAdd(_,{userid,pointcloudFile}){
+async function chageFileName(_,{userid,oriName,newName}){//unfinished *
+    const res = await db.connection('pointFiles').findOneAndUpdate({fileName:{$eq:oriName}},{$set:{fileName:newName}},{returnOriginal:false});
+    //update filepath 
+    if(res){
+        const fp=db.connection('pointFiles').findOne({fileName:{$eq:newName}});
+        fm.chageFileName(oriName,newName)
+
+
+        return true;
+    }
+    else
+        return false;
+}
+
+async function deleteFile(_,{userid,fileName}){
+    const res=await db.connection('pointFiles').findOne({fileName:{$eq:fileName}});
+    if(!res)
+        return false;
+    else if(fs.existsSync(res.filePath)){
+        fm.deleteFile(res.filePath);
+        await db.connection('pointFiles').deleteOne({fileName:fileName})
+        return true;
+    }
+    else 
+        return false;
+}
+
+function downloadFile(){
 
 }
 
-
-
-function fileDelete(){
-
-}
-
-function fileRename(){
-
-
+function uploadFile(){
+    
 }
 
 
@@ -59,7 +79,10 @@ const resolvers={
         fileList
     },
     Mutation:{
-        fileAdd
+        chageFileName,
+        deleteFile,
+        downloadFile,
+        uploadFile,
     },
     GraphQLDate,
 }
