@@ -57,9 +57,11 @@ class MainPage extends React.Component{
         }
         this.setState({serverFiles:filteredList});
     }
+
     componentDidMount(){
         this.loadData(dummyListData);
     }
+
     loadData(listData){
         // load data
         this.setState({serverFiles:listData});
@@ -69,12 +71,19 @@ class MainPage extends React.Component{
         //  first add to searchList for displaying 
         for(var i in this.state.serverFiles){
             if(item.id===this.state.serverFiles[i].id){
-                alert('file unsaved');
-                return false;
+                //上传并覆盖原来的文件
+                return true;
             }
         }
+        //上传新文件，并更新list状态
         this.setState({serverFiles:[...this.state.serverFiles,item]});
         return true;
+    }
+
+    async getDummylist(){
+        const response = await fetch('https://api.example.com/data');
+        const result = await response.json();
+        //设置dummylist
     }
     render(){
         return <div>

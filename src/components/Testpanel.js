@@ -77,6 +77,8 @@ class Testpanel extends React.Component{
         this.deleteModelbyName = this.deleteModelbyName.bind(this);
         this.addModel = this.addModel.bind(this);
         this.updateMaterialPanel = this.updateMaterialPanel.bind(this);
+        this.saveAllmodel = this.saveAllmodel.bind(this);
+        this.saveModelbyName = this.saveModelbyName.bind(this);
     }
     
     
@@ -95,7 +97,7 @@ class Testpanel extends React.Component{
         this.camera.position.set( 0.9728517749133652, 1.1044765132727201, 0.7316689528482836 );
         this.controls.target.set( 0, 0.5, 0 );
         this.controls.update();
-        this.controls.enablePan = false;
+        this.controls.enablePan = true;
         this.controls.enableDamping = true;
         this.controls.addEventListener( 'change', this.ownrender );
         this.folder.add(this.camera, 'fov', 1, 180).onChange(this.updateCamera);
@@ -104,25 +106,20 @@ class Testpanel extends React.Component{
         const name = 'horse'
         //this.loader.load( 'http://localhost:3000/horse.pcd', (points) => this.loaderfun(points, name))
         this.modelName = name;
-        this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
+        //this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
         this.scene.background = new THREE.Color( 0x000000 );
-        this.transformControls.size = 0.75;
-		this.transformControls.showX = false;
-		this.transformControls.space = 'world';
-        this.transformControls.addEventListener( 'mouseDown', () => {this.controls.enabled = false;console.log("uiuiu")} );
-		this.transformControls.addEventListener( 'mouseUp', () => this.controls.enabled = true );
         this.scene.add(this.camera);
         this.scene.add(this.axesHelper);
-        this.scene.add(this.transformControls)
         this.showInfaandmode();
         this.addPointFun();
-        window.addEventListener('dblclick',this.reqFullScreen);
-        window.addEventListener( 'resize', this.onWindowResize);
+        console.log(this.transformControls)
+        //window.addEventListener('dblclick',this.reqFullScreen);
+        //window.addEventListener( 'resize', this.onWindowResize);
         this.gui.open();
+        this.renderer.setSize( window.innerWidth*0.8, window.innerHeight );
         this.ownrender();
     }
     
-
     /*update model in the scene*/
     updateModel = (modelname) => {
         this.scene.remove(this.getModelbyName(this.modelName));
@@ -229,6 +226,7 @@ class Testpanel extends React.Component{
         this.loader.load( 'http://localhost:3000/'+this.modelname+'.pcd', (points) => this.loaderfun(points, model))
     }
 
+
     updateMaterialPanel = () => {
         this.materialFolder.addColor(this.materialControl, 'color').name('Color').onChange((value) => {
             const points = this.getModelbyName(this.modelName);
@@ -294,6 +292,45 @@ class Testpanel extends React.Component{
             document.exitFullscreen();
         }
    
+    }
+    saveAllmodel = () =>{
+        var vertices = []
+        for(var i = 0; i < this.pointArray.length; i++){
+            var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
+            vertices = [...vertices, ...points];
+        }
+        const numPoints = vertices.length/3;
+        let pcdContent = `VERSION .7
+            FIELDS x y z
+            SIZE 4 4 4
+            TYPE F F F
+            COUNT 1 1 1
+            WIDTH ${numPoints}
+            HEIGHT 1
+            VIEWPOINT 0 0 0 1 0 0 0
+            POINTS ${numPoints}
+            DATA ascii\n`;
+        for (let i = 0; i < vertices.length; i += 3) {
+            pcdContent += `${vertices[i]} ${vertices[i + 1]} ${vertices[i + 2]}\n`;
+          }
+        const blob = new Blob([pcdContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const fileName = new Date();
+        link.download =  fileName.toString() + '.pcd';
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    saveAsmesh = () => {
+        var vertices = []
+        for(var i = 0; i < this.pointArray.length; i++){
+            var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
+            vertices = [...vertices, ...points];
+        }
+        console.log(vertices)
+
     }
     
     saveModelbyName = () => {
@@ -534,6 +571,8 @@ class Testpanel extends React.Component{
             if(this.props.checkFiles != null){
                 this.modelName = this.props.checkFiles.fileName.split(".")[0];
                 this.switchNewmodel(this.modelName);
+                this.controls.target.copy(this.getModelbyName(this.modelName).position)
+                this.transformControls.attach(this.getModelbyName(this.modelName));
             }
         }
     };
@@ -543,10 +582,10 @@ class Testpanel extends React.Component{
         console.log("child",this.props.workingFiles);
         console.log("TestPanel render");
         return (
-            <div style={{width: '400px', background:'#887' }}>
+            <div style={{width: '400px', background:'#887', position:'relative' }}>
             <div
                 id= "canvas"
-                style={{width: '100%', background:'#887' }}
+                style={{width: '100%', background:'#887', position: 'absolute', height: '100%', top:0 , left: 0 }}
                 ref={(mount) => { this.mount = mount }}
             >
             </div>

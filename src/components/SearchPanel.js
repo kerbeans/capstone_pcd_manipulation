@@ -22,11 +22,6 @@ const contentStyle = {
     backgroundColor: '#1E1E1E',
 };
 const siderStyle = {
-    // textAlign: 'center',
-    // lineHeight: '120px',
-    // minHeight: 360,
-    // minWidth:360,
-    // color: '#fff',
      backgroundColor: '#CCCCCC',
 };
 
@@ -35,8 +30,7 @@ const dummyStyle = {
     padding: "0.5rem",
     margin: "0.5rem",
     backgroundColor: "orange"
-  };
-
+};
 
 
 const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange, isSelected}){
@@ -50,6 +44,7 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange
       }),
       [info]
     );
+
     const style = useMemo(
       () => ({
         ...dummyStyle,
@@ -75,7 +70,7 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange
     );
 });
 
-const SearchItem=memo(function SearchItem({info}){
+const SearchItem=memo(function SearchItem({info, onCheckboxChange, isSelected}){
     const [{ isDragging }, drag] = useDrag(
         () => ({
           type: 'search',
@@ -86,14 +81,23 @@ const SearchItem=memo(function SearchItem({info}){
           })
         }),
         [info]
-      );
+    );
+
     const style={
         ...dummyStyle,
         opacity:isDragging?0.4:1,
         cursor:"move"
     }
+
+    const handleCheckboxChange = (event) => {
+      if (onCheckboxChange) {
+        onCheckboxChange(info, event.target.checked);
+      }
+    };
+
     return (
         <div ref={drag} style={style} role={'SourceBox'}>
+        <input type="checkbox" onChange={handleCheckboxChange} checked={isSelected}/>
         <small>{info.id} </small>
         <small>{info.fileName}</small>
     </div>
@@ -113,10 +117,12 @@ const Container=memo( function Container({onDrop,contents,accept}){
     }),[onDrop]);
 
     let backgroundColor=isOver?'lightblue':'#fff';
+
     const style={
         ...dummyStyle,
         backgroundColor:backgroundColor
     }
+
     return (
         <div ref={drop}
             style={style}
@@ -142,6 +148,13 @@ function deleteItem(item,list,key){
   console.log(newList,'newlist');
   return newList;
 }
+//发送一个请求
+
+//往下拖就保存，往上拖加载
+
+//不要设置保存了，直接往下拖
+
+//删除功能
 
 
 
@@ -150,6 +163,7 @@ export default function SearchPanel(props){
     const [workingFiles, setWrokingFiles]=useState([]);
     const [checkFiles, setCheckFiles]=useState(null);
     const [selectedId, setSelectedId] = useState(null);
+    const [selectedServerfilesId, setSelectedserverFilesid] = useState(null);
     const toWorkspace=useCallback((item)=>{
       const newitem={...item.info,display:false}
       for(var i in workingFiles){
@@ -165,23 +179,35 @@ export default function SearchPanel(props){
         fileName:item.info.fileName,
         filePath:item.info.filePath
       };
-      if(props.uploadFile(newItem))
+      if(props.uploadFile(newItem)){
         setWrokingFiles(deleteItem(newItem,workingFiles,'id'));
-
+      }
     },[workingFiles])
 
     const handleCheckboxChange = (info, isChecked) => {
-      console.log("Checkbox changed in parent:", info, isChecked);
       setSelectedId(isChecked ? info.id : null);
       setCheckFiles(info);
     };
 
+    const handleSelectedserverFile = (info, isChecked) => {
+      console.log("serverfile",info)
+      setSelectedserverFilesid(isChecked ? info.id : null);
+    }
     const handleDownload=()=>{
       ref.current.saveModelbyName();
     }
 
-    console.log("search panel")
-    console.log("father",workingFiles)
+    const handleDownloadAll=()=>{
+      ref.current.saveAllmodel();
+    }
+
+    const saveAsmesh=()=>{
+      ref.current.saveAsmesh();
+    }
+
+    const handleDelete=()=>{
+      //发送删除请求，并调用父组件函数更新list
+    }
     return(
       <Space
         direction="vertical"
@@ -190,9 +216,9 @@ export default function SearchPanel(props){
           }}
           size={[0, 48]}>
         <Layout>
-          <Sider  width={'20%'} height={'100%'} style={siderStyle}>
+          <Sider width={'20%'} height={'100%'} style={siderStyle}>
             <DndProvider backend={HTML5Backend}>
-                <label >workspace </label>
+                <label >workspace </label><br/>
                 <input style={{display: 'none'}} id="read_file" type="file" onChange={(event)=>{
                   const filePath = event.target.value; 
                   var fileName=filePath.split('\\');
@@ -206,13 +232,14 @@ export default function SearchPanel(props){
                     display:false
                   }
                   setWrokingFiles([...workingFiles,item]);
-
                 }}/>
                 <button onClick={()=>{
                       const localFile=document.getElementById('read_file');
                       localFile.click();
                   }}>open</button>
                 <button onClick={handleDownload}>download</button>
+                <button onClick={handleDownloadAll}>downloadall</button>
+                <button onClick={saveAsmesh}>saveasmesh</button>
                 <Container 
                   onDrop={toWorkspace}
                   contents={workingFiles.length===0?<label>drop here</label>:workingFiles.map((item,idx)=>(<WorkspaceItem info={item} key={idx} onCheckboxChange={handleCheckboxChange} isSelected={selectedId === item.id}/>))}
@@ -228,9 +255,10 @@ export default function SearchPanel(props){
                         <input type="text" name="keywordFilter_text"></input>
                         <button>search</button>
                     </form>
+                    <button onClick={handleDelete}>delete</button>
                     <Container 
                       onDrop={toServer}
-                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx}></SearchItem>))}
+                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx} onCheckboxChange={handleSelectedserverFile} isSelected={selectedServerfilesId===item.id}></SearchItem>))}
                       accept={'work'}
                     />
                 </div>
