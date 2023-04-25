@@ -7,10 +7,16 @@ import React from "react";
 
 
 const dummyListData=[
-    {id:1,fileName:'zeghtti.pcd',filePath:'/abc/zeghtti.pcd',display:false},
-    {id:2,fileName:'globalMap.pcd',filePath:'/ddd/globalMap.pcd',display:false},
-    {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd',display:false},
-    {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac',display:false}
+    {id:1,fileName:'horse.pcd',filePath:'/abc/zeghtti.pcd'},
+    {id:2,fileName:'Zaghetto.pcd',filePath:'/ddd/globalMap.pcd'},
+    {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd'},
+    {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac'}
+]
+const dummyworkingFiles=[
+    {id:5,fileName:'zeghtti2.pcd',filePath:'/abc/zeghtti.pcd',display:false},
+    {id:6,fileName:'globalMap2.pcd',filePath:'/ddd/globalMap.pcd',display:true},
+    {id:7,fileName:'mushapotei2.pcd',filePath:'mushapotei.pcd',display:false},
+    {id:8,fileName:'npx.lac2',filePath:'/bs/npx.lac',display:false}
 ]
 
 const {Sider, Content } = Layout;
@@ -35,21 +41,14 @@ class MainPage extends React.Component{
     constructor(){
         super();
         this.state={serverFiles:[],displayedItem:{fileType:'pcd',fileName:''},workingFiles:[],message:''};
-        this.init()
-    }
-    init(){
-   
         this.loadData=this.loadData.bind(this);
         this.filterServerFiles=this.filterServerFiles.bind(this);
         this.uploadFile=this.uploadFile.bind(this);
         this.deleteFile=this.deleteFile.bind(this);
     }
-    filterServerFiles(searchKey){// searchkey ,page
-        const original=dummyListData;// request_from_sever
 
-
-
-        
+    filterServerFiles(searchKey){
+        const original=dummyListData;
         var filteredList=[];
         for(var i in original){
             if(original[i].fileName.search(searchKey)+1)
@@ -57,13 +56,14 @@ class MainPage extends React.Component{
         }
         this.setState({serverFiles:filteredList});
     }
+
     componentDidMount(){
         this.loadData();
     }
-    loadData(){
-        // load data request from server.
-        this.setState({serverFiles:dummyListData});
-        // filterSeverFiles("",1)
+
+    loadData(listData){
+        // load data
+        this.setState({serverFiles:listData});
     }
     deleteFile(item){
 
@@ -72,62 +72,62 @@ class MainPage extends React.Component{
         //  first add to searchList for displaying 
         for(var i in this.state.serverFiles){
             if(item.id===this.state.serverFiles[i].id){
-                alert('file unsaved');
-                return false;
+                //上传并覆盖原来的文件
+                return true;
             }
         }
-        //console.log('upload',document.querySelector('#uploadfile').value);
-        console.log(item,'ote,');
-        //document.querySelector('#uploadfile').value=item.fileName;
-
-        //this.loadData();
+        //上传新文件，并更新list状态
         this.setState({serverFiles:[...this.state.serverFiles,item]});
         return true;
     }
 
+    async getDummylist(){
+        const response = await fetch('https://api.example.com/data');
+        const result = await response.json();
+        //设置dummylist
+    }
     render(){
-        return (
-            <div>
-                <div id="header">
-                    <h1>open4vision</h1>
-                    {/* a invisible input button to upload local file to sever*/}
-                    <input type='file' id='uploadfile' style={{display:'none'}}  onChange={(e)=>{
-                        e.preventDefault();
-                        const files = e.target.files
-                        const formData = new FormData()
-                        formData.append('myFile', files[0])
-                    
-                        fetch('/data', {
-                        method: 'POST',
-                        body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                        console.log(data.path)
-                        })
-                        .catch(error => {
-                        console.error(error)
-                        })
-                    }}/>
+        return <div>
+                {/* <Space
+                direction="vertical"
+                style={{
+                    width: '100%'
+                }}
+                size={[0, 48]}
+            >
+                <Layout>
+                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
+                    </Sider>
+                    <Layout height={'100%'}>
+                        <Content style={contentStyle}>
+                            <Testpanel></Testpanel>
+                            <FloatButton onClick={this.openFromLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 50 }} />
+                            <FloatButton onClick={this.uploadFile} icon={<QuestionCircleOutlined />} type="default" style={{ right: 100 }} />
+                            <FloatButton onClick={this.saveToLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 150 }} />
+                        </Content>
+                    </Layout>
+                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
+                    </Sider>
+                </Layout>   
+            </Space> */}
+            {/* this is the header panel*/}
+            <div style={{"width":'100%'}}>
+            {/* blow is the  searchPanel,main*/}
+                <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
+                {/* write the search list here searchPanel*/}
+                    < SearchPanel serverFiles={this.state.serverFiles} 
+                    workingFiles={this.state.workingFiles} 
+                    filterServerFiles={this.filterServerFiles}
+                    uploadFile={this.uploadFile}
+                    />
                 </div>
-                <div style={{"width":'100%'}}>
-                {/* blow is the  searchPanel,main*/}
-                    <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
-                    {/* write the search list here searchPanel*/}
-                        < SearchPanel serverFiles={this.state.serverFiles} 
-                        workingFiles={this.state.workingFiles} 
-                        filterServerFiles={this.filterServerFiles}
-                        uploadFile={this.uploadFile}
-                        deleteFile={this.deleteFile}
-                        />
-                    </div>
-                </div>
-                <div style={{"clear":"both","backgroundColor":"yellow"}}>
-                    {/* write the foot print here, and the fromfile, upload, savetolocal button*/}
-                    <h1 >dummy footprint</h1>
-                </div>
+                {/* <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
+                    {/* write the control panel here controlPanel 
+                    <h1>dummy control panel</h1>
+                    <ControlPanel displayedItem={this.state.displayedItem}/>
+                </div> */}
+            </div>
         </div>
-        );
     }
 
 }
