@@ -66,6 +66,7 @@ async function changeFileName(_,{userid,oriName,newName}){//unfinished *
     }
 }
 
+
 async function deleteFile(_,{userid,fileName}){
     const res=await db.collection('pointFiles').find({fileName:fileName}).toArray();
     if(res.length<1){
@@ -83,7 +84,7 @@ async function deleteFile(_,{userid,fileName}){
 async function downloadFile(_,{userid,fileName}){//download from server to local
     const res= await db.collection('pointFiles').find({fileName:fileName}).toArray();
     if(res.length>=1){
-        return fm.readPCDFile(res.filePath);
+        return fm.readPCDFile(res[0].filePath);
     }
     else 
     return {header:false,pointCloudData:[],fileName:fileName};

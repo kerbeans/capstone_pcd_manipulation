@@ -1,2 +1,3 @@
 #!/bin/bash
-mongo capstone ./scripts/init.mongo.js
+
+mongosh pointFiles ./scripts/init.mongo.js

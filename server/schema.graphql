@@ -66,6 +66,6 @@ type Query {
 type Mutation {
     changeFileName(userid: Int!, oriName: String!, newName: String!): Boolean!
     deleteFile(userid: Int!, fileName: String!): Boolean!
-    downloadFile(userid: Int!, fileName: String!): PointData!
+    downloadFile(userid: Int!, fileName: String!): PointData
     uploadFile(userid: Int!, pointd: PointDataInput!): Int!
 }

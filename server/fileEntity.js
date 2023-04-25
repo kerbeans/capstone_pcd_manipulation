@@ -24,21 +24,23 @@ class fileManipulator{
         createFolder(this.Path);
     }
     async readPCDFile(filePath) {
-        const filename=filePath;
-        const fileStream = fs.createReadStream(filePath);
-        const rl = readline.createInterface({
+      const filename=filePath;
+      const fileStream = fs.createReadStream(filePath);
+      const rl = readline.createInterface({
           input: fileStream,
           crlfDelay: Infinity,
-        });
+      });
       
-        let header = {};
-        let readingHeader = true;
-        let pointCloudData = [];
+      let header = {};
+      let readingHeader = true;
+      let pointCloudData = [];
       
-        for await (const line of rl) {
-          if (readingHeader) {
-            const [key, value] = line.split(' ').filter((x) => x !== '');
-      
+      for await (const line of rl) {
+        if (readingHeader) {
+          const kav=line.split(' ');
+          const key =kav[0];
+          const value =kav.splice(1,kav.length).join(' ');
+          // const [key, value] = line.split(' ').filter((x) => x !== '');
             if (key === 'DATA') {
               header[key] = value;
               readingHeader = false;
