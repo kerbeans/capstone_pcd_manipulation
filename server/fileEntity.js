@@ -8,7 +8,7 @@ const readline = require('readline');
 
 
 const createFolder=async (realpath)=>{
-    const absPath=path.resolve(__dirname,realpath);
+    const absPath=realpath;
     try{
         await fs.promises.stat(absPath);
     }catch(e){
@@ -16,14 +16,15 @@ const createFolder=async (realpath)=>{
     }
 }
 
-export default class fileManipulator{
+
+
+class fileManipulator{
     constructor(dataPath,userID){
         this.Path=dataPath+'/'+userID;
         createFolder(this.Path);
     }
     async readPCDFile(filePath) {
-        filePath='data/0/'+filePath;
-        console.log(filePath);
+        const filename=filePath;
         const fileStream = fs.createReadStream(filePath);
         const rl = readline.createInterface({
           input: fileStream,
@@ -49,31 +50,63 @@ export default class fileManipulator{
             pointCloudData.push({ x, y, z });
           }
         }
-        return {header:header,pointCloudData:pointCloudData};
+        return {header:header,pointCloudData:pointCloudData,fileName:filename};
         //return { header, pointCloudData };
       }
+
     deleteFile(pointcloudPath){
-      fs.unlink('data/0/'+pointcloudPath, (err) => {
+      fs.unlink(pointcloudPath, (err) => {
           if(err) throw err;
           console.log('file deleted');
       })
     }
 
-    saveFile(pointcloudFile){
-
-
-
+    async saveFile(pointData,filename){
+      filename = this.Path+'/'+filename;
+      let pcdHeader = '';
+      for(var i in pointData.header){
+        if (i==="#"){
+          pcdHeader=pcdHeader+"NOTE"+' '+pointData.header[i]+'\n';
+          continue;
+        }
+        pcdHeader=pcdHeader+i+' '+pointData.header[i]+'\n'
+      }
+        // Write point data
+      let pcdData = pointData.pointCloudData.map(point => `${point.x} ${point.y} ${point.z}`).join('\n');
+        
+        // Combine header and point data, then write to file
+      let pcdContent = pcdHeader + pcdData + '\n';
+      let signal=false
+      fs.writeFile(filename, pcdContent,(error)=>{
+        if(error){
+          console.log('saving error',error);
+          signal=false;
+        }
+        else{
+          console.log('sucessfully writen');
+          signal=true;
+        }
+        });
+      return signal;
     }
-    editName(pointcloudFile,newName){
-      fs.rename(pointcloudFile, newName, function (err) { 
-        if (err) throw err; 
+
+
+    changeFileName(pointcloudFile,newName){
+      return fs.rename(this.Path+'/'+pointcloudFile, this.Path+'/'+newName, function (err) { 
+        if (err) {
+          return false;
+        }
+        else{
         console.log('File Renamed.'); 
-      });
+        return true;
+        }
+      })
+
     }
 
 }
 
-console.log(__dirname);
+module.exports= fileManipulator; 
 
 function moduleTest(){
   // fs.readdir('../data', function(err, files) {
@@ -88,13 +121,12 @@ function moduleTest(){
   //     });
   // });
 
-  a=new fileManipulator('../data',0)
-  data=a.readPCDFile('horse_n.pcd').then((b)=>{
-      console.log(b);
+  a=new fileManipulator('./data',0)
+  data=a.readPCDFile('created.pcd').then((b)=>{
+      a.saveFile(b,'created_new.pcd');
   });
   // a.editName('data/0/horse_s.pcd','data/0/horse_n.pcd');
   //data=(()=>{ a.readPCDFile('Zaghetto.pcd')})();
   //console.log(data);;
   // a.deleteFile('Zaghetto.pcd')
 }
-moduleTest()

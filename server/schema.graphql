@@ -1,41 +1,71 @@
 scalar GraphQLDate
 
-type pointFileDesc{
+type PointFileDesc {
     id: Int!
     fileName: String!
     filePath: String!
     modifiedDate: GraphQLDate!
 }
 
+type Header {
+    NOTE: String!
+    VERSION: Float!
+    FIELDS: String!
+    TYPE: String!
+    COUNT: Int!
+    WIDTH: Int!
+    HEIGHT: Int!
+    VIEWPOINT: String!
+    POINTS: Int!
+    DATA: String!
+}
+
+type Point{
+    x: Float!
+    y: Float!
+    z: Float!
+}
+
 type PointData{
-    fileName:Stirng!
-    header:{
-        '#':String!
-        VERSION:Double!
-        FIELDS:String!
-        TYPE:String!
-        COUNT:Int!
-        WIDTH:Int!
-        HEIGHT:Int!
-        VIEWPOINT:String!
-        POINTS:Int!
-        DATA:String!
-    }
-    pointCloudData:[{x:Double!,y:Double!,z:double!}]
+    fileName: String!
+    header: Header!
+    pointCloudData: [Point!]
 }
 
-type Query(){
-    fileList(userid:Int!,filterKey:String!,page:Int!):[pointFileDesc]
-};
+input HeaderInput{
+    NOTE: String!
+    VERSION: String!
+    FIELDS: String!
+    TYPE: String!
+    COUNT: String!
+    WIDTH: String!
+    HEIGHT: String!
+    VIEWPOINT: String!
+    POINTS: Int!
+    DATA: String!
+}
 
-type Mutation(){
-    chageFileName(userid:Int!,oriName:String!,newName:String!):Boolean!
-    deleteFile(userid:Int!,fileName:String!):Boolean!
-    downloadFile(userid:Int!,fileName:String!):PointData!
-    uploadFile(userid:Int!,pointd:PointData!):Int!
+input PointInput {
+    x: Float!
+    y: Float!
+    z: Float!
+}
+
+input PointDataInput {
+    fileName: String!
+    header: HeaderInput!
+    pointCloudData: [PointInput!]
 }
 
 
 
+type Query {
+    fileList(userid: Int!, filterKey: String!, page: Int!): [PointFileDesc]
+}
 
-
+type Mutation {
+    changeFileName(userid: Int!, oriName: String!, newName: String!): Boolean!
+    deleteFile(userid: Int!, fileName: String!): Boolean!
+    downloadFile(userid: Int!, fileName: String!): PointData!
+    uploadFile(userid: Int!, pointd: PointDataInput!): Int!
+}

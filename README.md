@@ -30,3 +30,8 @@ Class ControlPanel:
 sub-components of MainPage, receive props.displayedItem.
 
 
+in package
+        // "apollo-server-express": "^3.12.0",
+        // "mongodb": "^5.3.0",
+
+

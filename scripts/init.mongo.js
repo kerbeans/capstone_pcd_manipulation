@@ -10,13 +10,15 @@
  */  
 
 db.pointFiles.remove({});
+db.counters.remove({});
 
-pointFiles=[{id:1,fileName:'Zaghetto.pcd',filePath:'./data/Zaghetto.pcd',modifiedDate:new Date()},
-            {id:2,fileName:'globalMap.pcd',filePath:'./data/Zaghetto.pcd',modifiedDate: new Date()}]
+pointFiles=[{id:1,fileName:'horse_n.pcd',filePath:'./data/0/horse_n.pcd',modifiedDate:new Date()},
+            {id:2,fileName:'created.pcd',filePath:'./data/0/created.pcd',modifiedDate: new Date()},
+            {id:3,fileName:'created_new.pcd',filePath:'./data/0/created_new.pcd',modifiedDate: new Date()}]
 
 db.pointFiles.insertMany(pointFiles);
 const count = db.pointFiles.count();
-print('Inserted', count, 'Travellers');
+print('Inserted', count, 'PointFiles');
 
 //The _id below is just a placeholder. The below collection, in fact, has only one row and one column. We can denote this by any name but we call this fixedindex.
 db.counters.remove({ _id: 'fixedindex' });

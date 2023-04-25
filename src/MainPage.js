@@ -84,48 +84,50 @@ class MainPage extends React.Component{
         this.setState({serverFiles:[...this.state.serverFiles,item]});
         return true;
     }
-    render(){
-        return <div>
 
-            <div id="header">
-                <h1>open4vision</h1>
-                {/* a invisible input button to upload local file to sever*/}
-                <input type='file' id='uploadfile' style={{display:'none'}}  onChange={(e)=>{
-                    e.preventDefault();
-                    const files = e.target.files
-                    const formData = new FormData()
-                    formData.append('myFile', files[0])
-                  
-                    fetch('/data', {
-                      method: 'POST',
-                      body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                      console.log(data.path)
-                    })
-                    .catch(error => {
-                      console.error(error)
-                    })
-                }}/>
-            </div>
-            <div style={{"width":'100%'}}>
-            {/* blow is the  searchPanel,main*/}
-                <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
-                {/* write the search list here searchPanel*/}
-                    < SearchPanel serverFiles={this.state.serverFiles} 
-                    workingFiles={this.state.workingFiles} 
-                    filterServerFiles={this.filterServerFiles}
-                    uploadFile={this.uploadFile}
-                    deleteFile={this.deleteFile}
-                    />
+    render(){
+        return (
+            <div>
+                <div id="header">
+                    <h1>open4vision</h1>
+                    {/* a invisible input button to upload local file to sever*/}
+                    <input type='file' id='uploadfile' style={{display:'none'}}  onChange={(e)=>{
+                        e.preventDefault();
+                        const files = e.target.files
+                        const formData = new FormData()
+                        formData.append('myFile', files[0])
+                    
+                        fetch('/data', {
+                        method: 'POST',
+                        body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                        console.log(data.path)
+                        })
+                        .catch(error => {
+                        console.error(error)
+                        })
+                    }}/>
                 </div>
-            </div>
-            <div style={{"clear":"both","backgroundColor":"yellow"}}>
-                {/* write the foot print here, and the fromfile, upload, savetolocal button*/}
-                <h1 >dummy footprint</h1>
-            </div>
+                <div style={{"width":'100%'}}>
+                {/* blow is the  searchPanel,main*/}
+                    <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
+                    {/* write the search list here searchPanel*/}
+                        < SearchPanel serverFiles={this.state.serverFiles} 
+                        workingFiles={this.state.workingFiles} 
+                        filterServerFiles={this.filterServerFiles}
+                        uploadFile={this.uploadFile}
+                        deleteFile={this.deleteFile}
+                        />
+                    </div>
+                </div>
+                <div style={{"clear":"both","backgroundColor":"yellow"}}>
+                    {/* write the foot print here, and the fromfile, upload, savetolocal button*/}
+                    <h1 >dummy footprint</h1>
+                </div>
         </div>
+        );
     }
 
 }

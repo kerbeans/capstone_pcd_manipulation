@@ -1,0 +1,44 @@
+# query for fileList-----------------
+query initallist{
+  fileList(userid:0,filterKey:"",page:1){id,fileName,filePath}
+}
+
+#query for uploadfile to server ------------------
+
+mutation uploadfilemutation($pdInput:PointDataInput!){
+  uploadFile(userid:0,pointd:$pdInput) 
+}
+
+#variable 
+{"pdInput":{
+  "fileName":"querytest.pcd",
+  "header":{"NOTE":"n",
+  "VERSION":"0.4",
+  "FIELDS":"X",
+  "TYPE":"test",
+  "COUNT":"1",
+  "WIDTH":"30",
+  "HEIGHT":"30",
+  "VIEWPOINT":"X",
+  "POINTS":1,
+  "DATA":"assic"
+},
+"pointCloudData":[{"x":1,"y":2,"z":3}]}
+}
+
+# downloadFile from server to front end-------------------
+mutation mutationdownloadfile{
+  downloadFile(userid: 0, fileName: "created.pcd"){pointCloudData{x}}
+}
+
+
+# delete file-----------------------------------
+mutation mutationdeletefile{
+  deleteFile(userid:0,fileName:"created.pcd")
+}
+
+
+# change file name----------------
+mutation mutationchangefilename{
+  changeFileName(userid:0,oriName:"created_new.pcd",newName:"created_nn.pcd")
+}
