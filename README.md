@@ -1,3 +1,4 @@
+our project is developed on server 155.138.208.234:3000
 ## installation step
 1. git clone to local 
 2. run command:  
@@ -46,3 +47,4 @@ open source library.
 - Three.js
 - webGL
 - react
+

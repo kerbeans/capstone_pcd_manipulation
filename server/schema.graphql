@@ -57,12 +57,6 @@ input PointDataInput {
     pointCloudData: [PointInput!]
 }
 
-
-
-
-
-
-
 type Query {
     fileList(userid: Int!, filterKey: String!, page: Int!): [PointFileDesc]
     login(userid:Int!,password:String!):String!
@@ -75,3 +69,4 @@ type Mutation {
     downloadFile(userid: Int!, fileName: String!): PointData
     uploadFile(userid: Int!, pointd: PointDataInput!): Int!
 }
+

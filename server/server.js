@@ -9,6 +9,7 @@ const {MongoClient} = require('mongodb');
 const {Kind} =require('graphql/language');
 const fileManipulator=require('./fileEntity.js');
 const { resourceLimits } = require('worker_threads');
+const { getPayload } = require('./auth.js');
 const FILEPATH='./data'
 let db
 
@@ -151,7 +152,6 @@ async function login(_,{userid,password}){
     }
 }
 
-
 async function registration(_,{userid,password}){
     let res =await db.collection('users').find({userid:userid}).toArray();
     if(res.length>=1){
@@ -166,6 +166,9 @@ async function registration(_,{userid,password}){
         return "registration failed";
     }
 }
+
+
+
 
 const app=express();
 app.use(express.static('public'));
@@ -185,13 +188,26 @@ const resolvers={
     GraphQLDate,
 }
 
-
 const server = new ApolloServer({
     typeDefs: fs.readFileSync('./server/schema.graphql','utf-8'),
     resolvers,
     formateError:error=>{
         console.log(error);
         return error;
+    },
+    context:({req})=>{
+        const body=req.body;
+        console.log(req);
+        if(body.operationName=="querylogin"){
+                // get the user token from the headers
+            console.log(req.headers);
+            const token = req.headers.authorization || '';
+            // try to retrieve a user with the token
+            const { payload: user, loggedIn } = getPayload(token);
+            console.log(token,'er',user,'san',loggedIn,'si');
+            // add the user to the context
+            return { user, loggedIn };
+        }
     }
 });
 

@@ -60,6 +60,7 @@ class LoginPage extends React.Component {
       const requestOptions = {
         method: 'POST',
         headers: {
+          'authorization':`Bearer ${this.userid}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },

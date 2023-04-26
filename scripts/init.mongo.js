@@ -40,8 +40,8 @@ readDirRecursively(directoryPath);
 db.pointFiles.remove({});
 db.counters.remove({});
 db.users.remove({});
-
 db.users.insert({userid:0,password:""});
+
 
 
 db.pointFiles.insertMany(pointFiles);
