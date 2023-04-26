@@ -232,7 +232,7 @@ class Testpanel extends React.Component{
             }
             this.ownrender();
         }else{
-            alert("Please choose one files");
+            alert("Please choose one file to delete");
         }
     }
 
