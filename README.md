@@ -1,4 +1,6 @@
-our project is developed on server 155.138.208.234:3000
+Our project is developed on server 155.138.208.234:3000
+
+Demo video is shared with Google Drive https://drive.google.com/file/d/1pKc6GZ8D9wZBPkxxHs6zGjyC-JC2MZ-a/view?usp=sharing
 ## installation step
 1. git clone to local 
 2. run command:  
@@ -48,7 +50,8 @@ we use mongodb to store **userid, password and file description**, and a **fileM
 ![frontend_archtecture](./source/UI%20Components.jpg)
 
 ## third part dependency
-open source library.
+Open source library：
+- PCL
 - Three.js
 - webGL
 - react
