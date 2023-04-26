@@ -204,6 +204,7 @@ export default function SearchPanel(props){
     const handleDelete=()=>{
       //发送删除请求，并调用父组件函数更新list
     }
+    console.log('inserrch',props.serverFiles);
     return(
       <Space
         direction="vertical"
@@ -256,7 +257,7 @@ export default function SearchPanel(props){
                     <button onClick={handleDelete}>delete</button>
                     <Container 
                       onDrop={toServer}
-                      contents={props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx} onCheckboxChange={handleSelectedserverFile} isSelected={selectedServerfilesId===item.id}></SearchItem>))}
+                      contents={props.serverFiles===undefined?<label> </label>:props.serverFiles.map((item,idx)=>(<SearchItem info={item} key={idx} onCheckboxChange={handleSelectedserverFile} isSelected={selectedServerfilesId===item.id}></SearchItem>))}
                       accept={'work'}
                     />
                 </div>

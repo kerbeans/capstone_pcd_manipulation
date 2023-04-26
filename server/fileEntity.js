@@ -64,7 +64,6 @@ class fileManipulator{
     }
 
     async saveFile(pointData,filename){
-      filename = this.Path+'/'+filename;
       let pcdHeader = '';
       for(var i in pointData.header){
         if (i==="#"){
@@ -79,6 +78,7 @@ class fileManipulator{
         // Combine header and point data, then write to file
       let pcdContent = pcdHeader + pcdData + '\n';
       let signal=false
+      return false;
       fs.writeFile(filename, pcdContent,(error)=>{
         if(error){
           console.log('saving error',error);
@@ -93,8 +93,8 @@ class fileManipulator{
     }
 
 
-    changeFileName(pointcloudFile,newName){
-      return fs.rename(this.Path+'/'+pointcloudFile, this.Path+'/'+newName, function (err) { 
+    changeFileName(oriName,newName){
+      return fs.rename(oriName, newName, function (err) { 
         if (err) {
           return false;
         }

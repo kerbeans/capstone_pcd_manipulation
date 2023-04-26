@@ -35,7 +35,7 @@ const GraphQLDate = new GraphQLScalarType({
 
 async function fileList(_,{userid,filterKey,page}){//finished 
     if(filterKey===""){
-        var res=await db.collection('pointFiles').find().toArray();//.slice((page-1)*10,page*10).toArray();
+        let res=await db.collection('pointFiles').find().toArray();//.slice((page-1)*10,page*10).toArray();
         if(res.length>10*(page-1)){
              res=res.splice((page-1)*10,page*10);
              return res;
@@ -49,15 +49,15 @@ async function fileList(_,{userid,filterKey,page}){//finished
 }
 
 async function changeFileName(_,{userid,oriName,newName}){//unfinished *
-    var res = await db.collection('pointFiles').find({fileName:oriName}).toArray();
+    let res = await db.collection('pointFiles').find({fileName:oriName}).toArray();
     if(res.length<1)
         return false;
-    var path=res[0].filePath.split("/");//.join()
+    let path=res[0].filePath.split("/");//.join()
     path[path.length-1]=newName;
     path=path.join("/")
     //update filepath 
     if(fs.existsSync(res[0].filePath) && !fs.existsSync(path)){
-        fm.changeFileName(oriName,newName);
+        fm.changeFileName("./data/0/"+oriName,"./data/0/"+newName);
         await db.collection('pointFiles').findOneAndUpdate({fileName:oriName},{$set:{fileName:newName,filePath:path,modifiedDate:new Date()}},{returnOriginal:false});
         return true;
     }
@@ -91,7 +91,7 @@ async function downloadFile(_,{userid,fileName}){//download from server to local
 }
 
 async function uploadFile(_,{userid,pointd}){//upload to server
-    if(fm.saveFile(pointd,pointd.fileName)){
+    if(fm.saveFile(pointd,"./data/0/"+pointd.fileName)){
         async function getNextSequence(name) {
             const result = await db.collection('counters').findOneAndUpdate(
                 { _id: name },//find the entry that matches this _id
@@ -102,9 +102,9 @@ async function uploadFile(_,{userid,pointd}){//upload to server
         }
         let fileDesc={
             fileName:pointd.fileName,
-            filePath:fm.Path+'/'+pointd.fileName,
+            filePath:'./data/0/'+pointd.fileName,
             modifiedDate:new Date()}
-        var res =await db.collection('pointFiles').find({fileName:pointd.fileName}).toArray();
+        let res =await db.collection('pointFiles').find({fileName:pointd.fileName}).toArray();
         if(res.length<1){
             fileDesc.id = await getNextSequence('fixedindex');
             res=await db.collection('pointFiles').insertOne(fileDesc);
@@ -167,12 +167,15 @@ async function connectToDb(){
     db=client.db();
 }
 
-
+app.set('port', 5000);
 (async function(){
     try{
         await connectToDb();
-        app.listen(3000,function(){
-            console.log('App started on port 3000');
+        app.get('/', function(req, res){
+            res.send('hello world');
+        });
+        app.listen(app.get('port'),function(){
+            console.log('App started on port',app.get('port'));
         });
     }catch(err){
         console.log("ERROR",err);

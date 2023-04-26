@@ -88,29 +88,7 @@ class MainPage extends React.Component{
     }
     render(){
         return <div>
-                {/* <Space
-                direction="vertical"
-                style={{
-                    width: '100%'
-                }}
-                size={[0, 48]}
-            >
-                <Layout>
-                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
-                    </Sider>
-                    <Layout height={'100%'}>
-                        <Content style={contentStyle}>
-                            <Testpanel></Testpanel>
-                            <FloatButton onClick={this.openFromLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 50 }} />
-                            <FloatButton onClick={this.uploadFile} icon={<QuestionCircleOutlined />} type="default" style={{ right: 100 }} />
-                            <FloatButton onClick={this.saveToLocal} icon={<QuestionCircleOutlined />} type="default" style={{ right: 150 }} />
-                        </Content>
-                    </Layout>
-                    <Sider  width={'10%'} height={'100%'} style={siderStyle}>
-                    </Sider>
-                </Layout>   
-            </Space> */}
-            {/* this is the header panel*/}
+
             <div style={{"width":'100%'}}>
             {/* blow is the  searchPanel,main*/}
                 <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
@@ -121,11 +99,6 @@ class MainPage extends React.Component{
                     uploadFile={this.uploadFile}
                     />
                 </div>
-                {/* <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
-                    {/* write the control panel here controlPanel 
-                    <h1>dummy control panel</h1>
-                    <ControlPanel displayedItem={this.state.displayedItem}/>
-                </div> */}
             </div>
         </div>
     }
