@@ -47,8 +47,3 @@ print('Inserted', count, 'PointFiles');
 //The _id below is just a placeholder. The below collection, in fact, has only one row and one column. We can denote this by any name but we call this fixedindex.
 db.counters.remove({ _id: 'fixedindex' });
 db.counters.insert({ _id: 'fixedindex', current: count });
-
-db.pointFiles.createIndex({ id: 1 }, { unique: true });
-db.pointFiles.createIndex({ fileName: 1 });
-db.pointFiles.createIndex({ filePath: 1 });
-db.pointFiles.createIndex({ modifiedDate: 1 });
