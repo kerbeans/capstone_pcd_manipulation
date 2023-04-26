@@ -682,29 +682,30 @@ class Testpanel extends React.Component{
         }
         `;
         const model = this.getModelbyName(name);
-        const pointCloudData = model.geometry.getAttribute("position").array.map((v, i, array) => {
-            if (i % 3 === 0) {
-              return {
-                x: array[i],
-                y: array[i + 1],
-                z: array[i + 2],
-              };
-            }
-            return null;
-        }).filter((v) => v !== null);
+        const points = model.geometry.getAttribute('position').array
+        const pointCloudData = []
+        for (let i = 0; i < points.length; i += 3) {
+                const obj = {
+                  x: points[i],
+                  y: points[i + 1],
+                  z: points[i + 2]
+                };
+                pointCloudData.push(obj);
+        }
+        console.log(pointCloudData)
         const pdInput = {
             fileName: name + ".pcd",
             header: {
-              NOTE: "n",
-              VERSION: "0.4",
-              FIELDS: "X",
-              TYPE: "test",
-              COUNT: "1",
+              NOTE: "openvision4",
+              VERSION: ".7",
+              FIELDS: "x y z",
+              TYPE: "F F F",
+              COUNT: "1 1 1",
               WIDTH: "30",
               HEIGHT: "30",
-              VIEWPOINT: "X",
+              VIEWPOINT: "0 0 0 1 0 0 0",
               POINTS: pointCloudData.length,
-              DATA: "assic",
+              DATA: "ascii",
             },
             pointCloudData,
         };
@@ -762,30 +763,29 @@ class Testpanel extends React.Component{
           uploadFile(userid: 0, pointd: $pdInput)
         }
         `;
-        const pointCloudData = points.map((v, i, array) => {
-            if (i % 3 === 0) {
-              return {
-                x: array[i],
-                y: array[i + 1],
-                z: array[i + 2],
-              };
-            }
-            return null;
-        }).filter((v) => v !== null);
+        const pointCloudData = []
+        for (let i = 0; i < points.length; i += 3) {
+            const obj = {
+              x: points[i],
+              y: points[i + 1],
+              z: points[i + 2]
+            };
+            pointCloudData.push(obj);
+          }
         const pdInput = {
             fileName: this.generatefilename() + ".pcd",
             header: {
-              NOTE: "n",
-              VERSION: "0.4",
-              FIELDS: "X",
-              TYPE: "test",
-              COUNT: "1",
-              WIDTH: "30",
-              HEIGHT: "30",
-              VIEWPOINT: "X",
-              POINTS: pointCloudData.length,
-              DATA: "assic",
-            },
+                NOTE: "openvision4",
+                VERSION: ".7",
+                FIELDS: "x y z",
+                TYPE: "F F F",
+                COUNT: "1 1 1",
+                WIDTH: "30",
+                HEIGHT: "30",
+                VIEWPOINT: "0 0 0 1 0 0 0",
+                POINTS: pointCloudData.length,
+                DATA: "ascii",
+              },
             pointCloudData,
         };
         const requestOptions = {
@@ -818,7 +818,8 @@ class Testpanel extends React.Component{
             var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
             vertices = [...vertices, ...points];
         }
-
+        await this.updatemodelbypoints(vertices)
+        this.props.updateList();
     }
 
 
