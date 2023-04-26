@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs")
 
 const config={
-    secret:3399
+    secret:"secret"
 }
 
 const encryptPassword = password => new Promise((resolve, reject) => {

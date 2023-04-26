@@ -60,11 +60,12 @@ class LoginPage extends React.Component {
       const requestOptions = {
         method: 'POST',
         headers: {
-          'authorization':`Bearer ${this.userid}`,
+          'Authorization':"Basic "+userid,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: JSON.stringify({
+          operationName:"login",
           query,
           variables: {
             userid,

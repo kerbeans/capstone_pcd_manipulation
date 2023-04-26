@@ -22,12 +22,17 @@ This web application is used for point cloud data manipulation.
 4. **change scale/color** of the points.
 5. **convert to image** and download to local.
 6. **convert to mesh** and download to local.
-- **not implemented** frame work **Ant Design**
+
+- for other front end features.  
+1. we use Deluanator library to **generate mesh** from point data.
+2. we use Three.js library to render the whole scene.
+3. we use **Antd** to construct our UI frame. 
 
 - we adopt **react-dnd** to provide friendly user control. Here are some definitions.
 1. user drag the file from server and drop to workspace as to load the file.
 2. user drop the file to server area to save the file to server.
 
+- also, we adpot jwt for user login authentication.
 
 ## optimization
 1. The number of returned server file list is constrain at 5. By including page number in query, so that **reduce the data transfer throughput**.  

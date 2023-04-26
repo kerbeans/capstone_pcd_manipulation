@@ -197,15 +197,10 @@ const server = new ApolloServer({
     },
     context:({req})=>{
         const body=req.body;
-        console.log(req);
-        if(body.operationName=="querylogin"){
-                // get the user token from the headers
-            console.log(req.headers);
+        if(body.operationName==="login"){
             const token = req.headers.authorization || '';
-            // try to retrieve a user with the token
-            const { payload: user, loggedIn } = getPayload(token);
-            console.log(token,'er',user,'san',loggedIn,'si');
-            // add the user to the context
+            const { payload: user, loggedIn } = getPayload(token);//plantext 0,false
+            console.log('token: ',token,'user: ',user,'loggedIn: ',loggedIn);
             return { user, loggedIn };
         }
     }
