@@ -6,7 +6,9 @@ import { GUI } from '../../node_modules/three/examples/jsm/libs/lil-gui.module.m
 import { GLTFExporter } from '../../node_modules/three/examples/jsm/exporters/GLTFExporter.js';
 import {DragControls} from '../../node_modules/three/examples/jsm/controls/DragControls.js';
 import {TransformControls} from '../../node_modules/three/examples/jsm/controls/TransformControls.js';
-//import Delaunator from 'delaunator';
+import Delaunator from 'delaunator';
+import { ConvexHull } from '../../node_modules/three/examples/jsm/math/ConvexHull.js';
+import { ConvexGeometry } from '../../node_modules/three/examples/jsm/geometries/ConvexGeometry.js';
 import { getTransitionName } from "antd/es/_util/motion.js";
 
 const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
@@ -71,7 +73,7 @@ class Testpanel extends React.Component{
         this.addPoint = this.addPoint.bind(this);   
         this.removePoint =this.removePoint.bind(this);
         this.showInfaandmode =this.showInfaandmode.bind(this);
-        //this.transfertomesh = this.transfertomesh.bind(this);
+        this.transfertomesh = this.transfertomesh.bind(this);
         this.saveMeshAsGLTF = this.saveMeshAsGLTF.bind(this);
         this.ownrender = this.ownrender.bind(this);
         this.updatepanelrotationpanel = this.updatepanelrotationpanel.bind(this);
@@ -357,14 +359,23 @@ class Testpanel extends React.Component{
         URL.revokeObjectURL(url);
     }
 
-    saveAsmesh = () => {
-        var vertices = []
-        for(var i = 0; i < this.pointArray.length; i++){
-            var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
-            vertices = [...vertices, ...points];
+    saveAsmesh = async (name) => {
+        if(this.getModelbyName(name).visible===true){
+            var vertices = this.getModelbyName(name).geometry.getAttribute('position').array;
+            const mesh = await this.transfertomesh(vertices);
+            mesh.name = name + 'mesh'
+            this.scene.add(mesh);
+            this.getModelbyName(name).visible = false;
+            this.gui.domElement.style.display = 'none'
+            this.ownrender();
         }
-        console.log(vertices)
+        else{
+            this.scene.remove(this.getModelbyName(name+'mesh'))
+            this.getModelbyName(name).visible=true;
+            this.gui.domElement.style.display = 'block'
+            this.ownrender();
 
+        }
     }
     
     saveModelbyName = () => {
@@ -536,29 +547,42 @@ class Testpanel extends React.Component{
         }
     }
 
-    /*transfertomesh(points){
+    async transfertomesh(cloudpoints){
+        const points = [];
+        for (let i = 0; i < cloudpoints.length; i += 3) {
+            points.push([cloudpoints[i], cloudpoints[i + 1], cloudpoints[i + 2]]);
+        }
+
         const delaunay = Delaunator.from(points);
 
         // 创建Three.js几何体
         const geometry = new THREE.BufferGeometry();
-
+    
         // 设置顶点数据
-        const vertices = new Float32Array(points);
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-
+        geometry.setAttribute('position', new THREE.BufferAttribute(cloudpoints, 3));
+    
         // 设置索引数据
         const indices = new Uint32Array(delaunay.triangles);
         geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-
+    
         // 创建Three.js网格
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const mesh = new THREE.Mesh(geometry, material);
+        console.log("mesh", mesh);
         return mesh;
-    }*/
+    }
 
     saveMeshAsGLTF(mesh) {
-        console.log("asdasd")
         const exporter = new GLTFExporter();
+
+        // 配置选项
+        const options = {
+          trs: false,
+          onlyVisible: true,
+          truncateDrawRange: true,
+          binary: false,
+        };
+      
         exporter.parse(mesh, (gltf) => {
           const blob = new Blob([JSON.stringify(gltf)], { type: 'application/octet-stream' });
           const url = URL.createObjectURL(blob);
@@ -568,9 +592,12 @@ class Testpanel extends React.Component{
           link.style.display = 'none';
           document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
-        });
-    }
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
+        }, options);
+    }    
 
     componentWillUnmount() {
         this.mount.removeChild(this.renderer.domElement);
@@ -608,7 +635,6 @@ class Testpanel extends React.Component{
                         const positions = new Float32Array(points.length * 3);
                         for (let i = 0; i < points.length; i++) {
                             const point = points[i];
-                            console.log(point)
                             positions[i * 3] = point.x;
                             positions[i * 3 + 1] = point.y;
                             positions[i * 3 + 2] = point.z;
@@ -669,7 +695,7 @@ class Testpanel extends React.Component{
             if(this.props.checkFiles != null){
                 this.modelName = this.props.checkFiles.fileName.split(".")[0];
                 this.switchNewmodel(this.modelName);
-                this.controls.target.copy(this.getModelbyName(this.modelName).position)
+                //this.controls.target.copy(this.getModelbyName(this.modelName).position)
                 this.transformControls.attach(this.getModelbyName(this.modelName));
             }
         }
@@ -677,12 +703,20 @@ class Testpanel extends React.Component{
     
     async updatemodel(name){
         const mutation = `
-        mutation UploadFileMutation($pdInput: PointDataInput!) {
-          uploadFile(userid: 0, pointd: $pdInput)
+        mutation UploadFileMutation($userid: Int!,$pdInput: PointDataInput!) {
+          uploadFile(userid: $userid, pointd: $pdInput)
         }
         `;
         const model = this.getModelbyName(name);
-        const points = model.geometry.getAttribute('position').array
+        const geometry = model.geometry;
+        geometry.applyMatrix4(model.matrix);
+        model.position.set(0, 0, 0);
+        model.rotation.set(0, 0, 0);
+        model.scale.set(1, 1, 1);
+        model.updateMatrix();
+        geometry.attributes.position.needsUpdate = true;
+        const updatedmodel = this.getModelbyName(name);
+        const points = updatedmodel.geometry.getAttribute('position').array
         const pointCloudData = []
         for (let i = 0; i < points.length; i += 3) {
                 const obj = {
@@ -718,7 +752,8 @@ class Testpanel extends React.Component{
             body: JSON.stringify({
               query: mutation,
               variables: {
-                pdInput,
+                userid:this.props.userid,
+                pdInput:pdInput,
               },
             }),
         };
@@ -730,9 +765,10 @@ class Testpanel extends React.Component{
 
 
     async loadmodel(name){
+        console.log("users",this.props.userid)
         const mutation = `
-            mutation mutationdownloadfile($fileName: String!) {
-                downloadFile(userid: 0, fileName: $fileName) {
+            mutation mutationdownloadfile($userid: Int!,$fileName: String!) {
+                downloadFile(userid: $userid, fileName: $fileName) {
                     pointCloudData {
                         x,y,z
                     }
@@ -749,6 +785,7 @@ class Testpanel extends React.Component{
               query: mutation,
               variables: {
                 fileName: name + ".pcd",
+                userid: this.props.userid
               },
             }),
         };
@@ -759,8 +796,8 @@ class Testpanel extends React.Component{
 
     async updatemodelbypoints(points){
         const mutation = `
-        mutation UploadFileMutation($pdInput: PointDataInput!) {
-          uploadFile(userid: 0, pointd: $pdInput)
+        mutation UploadFileMutation($userid: Int!, $pdInput: PointDataInput!) {
+          uploadFile(userid:$userid, pointd: $pdInput)
         }
         `;
         const pointCloudData = []
@@ -797,7 +834,8 @@ class Testpanel extends React.Component{
             body: JSON.stringify({
               query: mutation,
               variables: {
-                pdInput,
+                pdInput:pdInput,
+                userid:this.props.userid
               },
             }),
         };
@@ -815,6 +853,14 @@ class Testpanel extends React.Component{
     async submittoserver(){
         var vertices = []
         for(var i = 0; i < this.pointArray.length; i++){
+            const model = this.getModelbyName(this.pointArray[i])
+            const geometry = model.geometry;
+            geometry.applyMatrix4(model.matrix);
+            model.position.set(0, 0, 0);
+            model.rotation.set(0, 0, 0);
+            model.scale.set(1, 1, 1);
+            model.updateMatrix();
+            geometry.attributes.position.needsUpdate = true;
             var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
             vertices = [...vertices, ...points];
         }
@@ -824,7 +870,6 @@ class Testpanel extends React.Component{
 
 
     render(){
-
         console.log("child",this.props.workingFiles);
         console.log("TestPanel render");
         return (

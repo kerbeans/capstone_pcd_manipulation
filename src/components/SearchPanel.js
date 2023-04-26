@@ -182,6 +182,7 @@ export default function SearchPanel(props){
     const [selectedServerfilesName, setSelectedserverFilesname] = useState(null);
     const [selectedServerfileChecked, setSelectedserverFileChecked] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const userid = props.userid
     const toWorkspace=useCallback((item)=>{
       const newitem={...item.info,display:false}
       for(var i in workingFiles){
@@ -225,7 +226,12 @@ export default function SearchPanel(props){
     }
 
     const saveAsmesh=()=>{
-      ref.current.saveAsmesh();
+      if(selectedId === null){
+        alert("Please select a file")
+      }
+      else{
+        ref.current.saveAsmesh(checkFiles.fileName.split('.')[0]);
+      }
     }
 
     const saveAsimage=()=>{
@@ -235,6 +241,9 @@ export default function SearchPanel(props){
     const handlerename=()=>{
       if(selectedServerfileChecked){
         setShowModal(true);
+      }
+      else{
+        alert('Please select a file')
       }
     }
 
@@ -252,8 +261,8 @@ export default function SearchPanel(props){
 
     async function changeFileName(oriName, newName) {
       const mutation = `
-        mutation ChangeFileName($oriName: String!, $newName: String!) {
-          changeFileName(userid: 0, oriName: $oriName, newName: $newName)
+        mutation ChangeFileName($userid: Int! $oriName: String!, $newName: String!) {
+          changeFileName(userid: $userid, oriName: $oriName, newName: $newName)
         }
       `;
     
@@ -268,6 +277,7 @@ export default function SearchPanel(props){
           variables: {
             oriName: oriName,
             newName: newName,
+            userid: props.userid
           },
         }),
       };
@@ -320,13 +330,14 @@ export default function SearchPanel(props){
     const handleDelete = async()=>{
       if(selectedServerfileChecked){
         const query = `
-          mutation DeleteFile($fileName: String!) {
-            deleteFile(userid: 0, fileName: $fileName)
+          mutation DeleteFile($userid: Int!, $fileName: String!) {
+            deleteFile(userid: $userid, fileName: $fileName)
           }
         `;
       
         const variables = {
           fileName: selectedServerfilesName,
+          userid: props.userid
         };
 
         const response = await fetch(GRAPHQL_SERVER_URL, {
@@ -342,6 +353,7 @@ export default function SearchPanel(props){
         });
 
         const result = await response.json();
+        await props.updateList()
       }
     }
 
@@ -424,7 +436,7 @@ export default function SearchPanel(props){
                         <svg t="1682394495919" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="52059" width="20" height="20"><path d="M651.9296 595.8656a152.0128 152.0128 0 0 1-45.2096 31.8464l-133.12 61.44a86.5792 86.5792 0 0 1-36.2496 8.0384A86.2208 86.2208 0 0 1 357.7856 578.56c22.7328-56.32 46.592-114.6368 58.7776-144.4352a152.832 152.832 0 0 1 33.024-49.8176L699.2384 133.12H244.6336a115.9168 115.9168 0 0 0-115.9168 116.1216v566.528A115.9168 115.9168 0 0 0 244.6336 931.84h540.7232A115.9168 115.9168 0 0 0 901.12 815.7696V346.9824z" fill="#707070" p-id="52060"></path><path d="M850.3296 128.7168a50.4832 50.4832 0 0 0-71.168 0l-293.2736 291.84a100.5568 100.5568 0 0 0-21.9136 33.1264c-12.1856 29.7472-35.84 88.064-58.6752 144.1792a34.816 34.816 0 0 0 46.8992 44.6976l133.12-61.44a100.9152 100.9152 0 0 0 30.0032-21.1456l296.96-298.9056a50.4832 50.4832 0 0 0-0.3072-71.68z" fill="#707070" p-id="52061"></path></svg>
                       </button>
                       <button onClick={handleAxis} style={buttonstyle}>
-                    <svg t="1682443109907" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="25350" width="20" height="20"><path d="M817.152 102.4H208.128a122.88 122.88 0 0 0-122.88 122.88v438.1184a122.88 122.88 0 0 0 122.88 122.88h609.28a122.88 122.88 0 0 0 122.88-122.88V225.28a122.88 122.88 0 0 0-123.136-122.88zM803.84 335.872l-232.96 226.3552a34.7136 34.7136 0 0 1-49.7664-1.4848L396.4416 424.6528l-146.176 146.176a20.48 20.48 0 1 1-28.9792-28.9792l150.8352-150.784a34.6624 34.6624 0 0 1 50.1248 1.0752l124.7232 136.192 228.1984-221.7984a20.48 20.48 0 1 1 28.672 29.3376zM881.6128 918.2208H143.616a27.9552 27.9552 0 1 1 0-55.8592h737.9968a27.9552 27.9552 0 1 1 0 55.8592z" fill="#707070" p-id="25351"></path></svg>
+                    <svg t="1682443109907" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="25350" width="20" height="20"><path d="M817.152 102.4H208.128a122.88 122.88 0 0 0-122.88 122.88v438.1184a122.88 122.88 0 0 0 122.88 122.88h609.28a122.88 122.88 0 0 0 122.88-122.88V225.28a122.88 122.88 0 0 0-123.136-122.88zM803.84 335.872l-232.96 226.3552a34.7136 34.7136 0 0 1-49.7664-1.4848L396.4416 424.6528l-146.176 146.176a20.48 20.48 0 1 1-28.9792-28.9792l150.8352-150.784a34.6624 34.6624 0 0 1 50.1248 1.0752l124.7232 136.192 228.1984-221.7984a20.48 20.48 0 1 1 28.672 29.3376zM881.6128 918.2208H143.616a27.9552 27.9552 0 1 1 0-55.8592h737.9968a27.9552 27.9552 0 1 1 0 55.8592z" fill="#707070" p-id="25351"></path></svg>
                     </button> 
                     </div>
                     <Container 
@@ -446,7 +458,7 @@ export default function SearchPanel(props){
           </Sider>
           <Layout>
             <Content>
-              <Testpanel workingFiles={workingFiles} checkFiles={checkFiles} ref={ref} updateList={props.updateList}/>
+              <Testpanel userid={userid} workingFiles={workingFiles} checkFiles={checkFiles} ref={ref} updateList={props.updateList}/>
               {showModal && (
                 <div
                   style={{
