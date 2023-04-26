@@ -8,6 +8,10 @@ import {DragControls} from '../../node_modules/three/examples/jsm/controls/DragC
 import {TransformControls} from '../../node_modules/three/examples/jsm/controls/TransformControls.js';
 import Delaunator from 'delaunator';
 import { getTransitionName } from "antd/es/_util/motion.js";
+
+const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
+
+
 class Testpanel extends React.Component{
     con = true;
     scene = new THREE.Scene();
@@ -49,7 +53,7 @@ class Testpanel extends React.Component{
         z:this.showPointPosition.position_z,
     }
     //坐标轴
-    axesHelper = new THREE.AxesHelper(5);
+    axesHelper = new THREE.AxesHelper(1e5);
     //鼠标点击拾取点
     ray = new THREE.Raycaster();
     mouse = new THREE.Vector2();
@@ -69,7 +73,6 @@ class Testpanel extends React.Component{
         this.showInfaandmode =this.showInfaandmode.bind(this);
         this.transfertomesh = this.transfertomesh.bind(this);
         this.saveMeshAsGLTF = this.saveMeshAsGLTF.bind(this);
-        this.updateModel = this.updateModel.bind(this);
         this.ownrender = this.ownrender.bind(this);
         this.updatepanelrotationpanel = this.updatepanelrotationpanel.bind(this);
         this.updateTranslationPanel = this.updateTranslationPanel.bind(this);
@@ -79,6 +82,14 @@ class Testpanel extends React.Component{
         this.updateMaterialPanel = this.updateMaterialPanel.bind(this);
         this.saveAllmodel = this.saveAllmodel.bind(this);
         this.saveModelbyName = this.saveModelbyName.bind(this);
+        this.saveAsimage = this.saveAsimage.bind(this);
+        this.handleresize = this.handleresize.bind(this);
+        this.loadmodel = this.loadmodel.bind(this);
+        this.updatemodel = this.updatemodel.bind(this);
+        this.showaxis = this.showaxis.bind(this);
+        this.submittoserver = this.submittoserver.bind(this);
+        this.updatemodelbypoints = this.updatemodelbypoints.bind(this);
+        this.generatefilename = this.generatefilename.bind(this);
     }
     
     
@@ -95,11 +106,25 @@ class Testpanel extends React.Component{
         //this.camera.position.set( 5, 2, 8 );
         this.camera.lookAt( this.scene.position );
         this.camera.position.set( 0.9728517749133652, 1.1044765132727201, 0.7316689528482836 );
-        this.controls.target.set( 0, 0.5, 0 );
+        this.controls.target.set( 0, 0 ,0 );
         this.controls.update();
         this.controls.enablePan = true;
         this.controls.enableDamping = true;
         this.controls.addEventListener( 'change', this.ownrender );
+        this.scene.background = new THREE.Color( 0xa0a0a0 );
+        const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+        hemiLight.position.set( 0, 20, 0 );
+        this.scene.add( hemiLight );
+        const dirLight = new THREE.DirectionalLight( 0xffffff );
+        dirLight.position.set( 3, 10, 10 );
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.top = 2;
+        dirLight.shadow.camera.bottom = - 2;
+        dirLight.shadow.camera.left = - 2;
+        dirLight.shadow.camera.right = 2;
+        dirLight.shadow.camera.near = 0.1;
+        dirLight.shadow.camera.far = 40;
+        this.scene.add( dirLight );
         this.folder.add(this.camera, 'fov', 1, 180).onChange(this.updateCamera);
         this.folder.add(this.camera, 'near', 1, 200).onChange(this.updateCamera);
         this.folder.add(this.camera, 'far', 1, 200).onChange(this.updateCamera);
@@ -107,25 +132,23 @@ class Testpanel extends React.Component{
         //this.loader.load( 'http://localhost:3000/horse.pcd', (points) => this.loaderfun(points, name))
         this.modelName = name;
         //this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
-        this.scene.background = new THREE.Color( 0x000000 );
         this.scene.add(this.camera);
         this.scene.add(this.axesHelper);
         this.showInfaandmode();
         this.addPointFun();
         console.log(this.transformControls)
         //window.addEventListener('dblclick',this.reqFullScreen);
-        //window.addEventListener( 'resize', this.onWindowResize);
+        window.addEventListener( 'resize', this.handleresize);
         this.gui.open();
-        this.renderer.setSize( window.innerWidth*0.8, window.innerHeight );
+        this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
         this.ownrender();
     }
     
+    handleresize = () =>{
+        this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
+        this.ownrender();
+    }
     /*update model in the scene*/
-    updateModel = (modelname) => {
-        this.scene.remove(this.getModelbyName(this.modelName));
-        this.modelName = modelname;
-        this.loader.load( 'http://localhost:3000/'+modelname+'.pcd', (points) => this.loaderfun(points, modelname))
-    } 
 
     //设置点的属性，并用gui控制模型的属性。
     loaderfun = (points,name) => {
@@ -293,6 +316,18 @@ class Testpanel extends React.Component{
         }
    
     }
+
+    saveAsimage = () =>{
+        this.renderer.render(this.scene, this.camera);
+        const imageDataUrl = this.renderer.domElement.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = imageDataUrl;
+        downloadLink.download = 'rendered_scene.png';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
     saveAllmodel = () =>{
         var vertices = []
         for(var i = 0; i < this.pointArray.length; i++){
@@ -317,8 +352,7 @@ class Testpanel extends React.Component{
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const fileName = new Date();
-        link.download =  fileName.toString() + '.pcd';
+        link.download =  this.generatefilename() + '.pcd';
         link.click();
         URL.revokeObjectURL(url);
     }
@@ -547,24 +581,88 @@ class Testpanel extends React.Component{
         this.renderer.render(this.scene, this.camera); 
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        console.log("TestPanel componentDidUpdate");
-        console.log("Previous props:", prevProps);
-        console.log("Current props:", this.props);
-        console.log("Previous state:", prevState);
-        console.log("Current state:", this.state);
+    showaxis(){
+        this.axesHelper.visible = !this.axesHelper.visible;
+        this.ownrender();
+    }
+
+    async componentDidUpdate(prevProps, prevState) {
+        //console.log("TestPanel componentDidUpdate");
+        //console.log("Previous props:", prevProps);
+        //console.log("Current props:", this.props);
+        //console.log("Previous state:", prevState);
+        //console.log("Current state:", this.state);
         if (prevProps.workingFiles !== this.props.workingFiles) {
-            for(var i = 0; i < this.props.workingFiles.length; i++){
-                //字符串遇到. 分割
-                var model = this.props.workingFiles[i].fileName.split(".")[0];
-                if(this.pointArray.includes(model)){
-                    continue;
+            if(prevProps.workingFiles.length < this.props.workingFiles.length){
+                console.log(this.props.workingFiles)
+                for(var i = 0; i < this.props.workingFiles.length; i++){
+                    var model = this.props.workingFiles[i].fileName.split(".")[0];
+                    if(this.pointArray.includes(model)){
+                        continue;
+                    }
+                    else{
+                        const points = await this.loadmodel(model);
+                        console.log(points)
+                        console.log("adsdasd")
+                        const pointsGeometry = new THREE.BufferGeometry();
+                        const positions = new Float32Array(points.length * 3);
+                        for (let i = 0; i < points.length; i++) {
+                            const point = points[i];
+                            console.log(point)
+                            positions[i * 3] = point.x;
+                            positions[i * 3 + 1] = point.y;
+                            positions[i * 3 + 2] = point.z;
+                        }
+                        pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                        const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 5 });
+                        const pointCloud = new THREE.Points(pointsGeometry, pointsMaterial);
+                        pointCloud.name = model;
+                        pointCloud.geometry.center(0,0,0);
+                        pointCloud.geometry.rotateX( Math.PI );
+                        var middle = new THREE.Vector3();
+                        pointCloud.geometry.computeBoundingBox();
+                        console.log(pointCloud)
+                        pointCloud.geometry.boundingBox.getCenter(middle);
+                        pointCloud.applyMatrix4(
+                            new THREE.Matrix4().makeTranslation(
+                                -middle.x,
+                                -middle.y,
+                                -middle.z
+                            )
+                        );
+                        // 比例
+                        var largestDimension = Math.max(
+                            pointCloud.geometry.boundingBox.max.x,
+                            pointCloud.geometry.boundingBox.max.y,
+                            pointCloud.geometry.boundingBox.max.z
+                        );
+                        this.camera.position.y = largestDimension * 1;
+                        this.modelName = model;
+                        if(this.exist === false){
+                            this.updateMaterialPanel();
+                            this.updatepanelrotationpanel();
+                            this.updateTranslationPanel();
+                            this.exist = true;
+                        }
+                        else{
+                            this.switchNewmodel(model);
+                        }
+                        this.scene.add(pointCloud);
+                        this.pointArray.push(model);
+                        this.ownrender();
+                        //this.loader.load( 'http://localhost:3000/'+model+'.pcd', (points) => this.loaderfun(points, model))
+                    }
                 }
-                else{
-                    this.loader.load( 'http://localhost:3000/'+model+'.pcd', (points) => this.loaderfun(points, model))
-                    this.pointArray.push(model);
-                    console.log(this.scene.children)
-                }
+            }
+            else{//移除模型的话
+                const removedmodel = prevProps.workingFiles.filter(item => !this.props.workingFiles.includes(item))[0];
+                console.log("remove",removedmodel)
+                //this.updatemodel(removedmodel.fileName.split(".")[0]);
+                this.scene.remove(this.getModelbyName(removedmodel.fileName.split(".")[0]));
+                this.pointArray = this.pointArray.filter(item => item !== removedmodel.fileName.split(".")[0]);
+                this.modelName = this.pointArray[0];
+
+                this.ownrender();
             }
         }
         if (prevProps.checkFiles != this.props.checkFiles) {
@@ -577,6 +675,153 @@ class Testpanel extends React.Component{
         }
     };
     
+    async updatemodel(name){
+        const mutation = `
+        mutation UploadFileMutation($pdInput: PointDataInput!) {
+          uploadFile(userid: 0, pointd: $pdInput)
+        }
+        `;
+        const model = this.getModelbyName(name);
+        const pointCloudData = model.geometry.getAttribute("position").array.map((v, i, array) => {
+            if (i % 3 === 0) {
+              return {
+                x: array[i],
+                y: array[i + 1],
+                z: array[i + 2],
+              };
+            }
+            return null;
+        }).filter((v) => v !== null);
+        const pdInput = {
+            fileName: name + ".pcd",
+            header: {
+              NOTE: "n",
+              VERSION: "0.4",
+              FIELDS: "X",
+              TYPE: "test",
+              COUNT: "1",
+              WIDTH: "30",
+              HEIGHT: "30",
+              VIEWPOINT: "X",
+              POINTS: pointCloudData.length,
+              DATA: "assic",
+            },
+            pointCloudData,
+        };
+        const requestOptions = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              query: mutation,
+              variables: {
+                pdInput,
+              },
+            }),
+        };
+        console.log(pdInput)
+        const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+        const data = await response.json();
+        console.log(data)
+    }
+
+
+    async loadmodel(name){
+        const mutation = `
+            mutation mutationdownloadfile($fileName: String!) {
+                downloadFile(userid: 0, fileName: $fileName) {
+                    pointCloudData {
+                        x,y,z
+                    }
+                }
+            }
+            `;
+        const requestOptions = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              query: mutation,
+              variables: {
+                fileName: name + ".pcd",
+              },
+            }),
+        };
+        const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+        const data = await response.json();
+        return data.data.downloadFile.pointCloudData;
+    }
+
+    async updatemodelbypoints(points){
+        const mutation = `
+        mutation UploadFileMutation($pdInput: PointDataInput!) {
+          uploadFile(userid: 0, pointd: $pdInput)
+        }
+        `;
+        const pointCloudData = points.map((v, i, array) => {
+            if (i % 3 === 0) {
+              return {
+                x: array[i],
+                y: array[i + 1],
+                z: array[i + 2],
+              };
+            }
+            return null;
+        }).filter((v) => v !== null);
+        const pdInput = {
+            fileName: this.generatefilename() + ".pcd",
+            header: {
+              NOTE: "n",
+              VERSION: "0.4",
+              FIELDS: "X",
+              TYPE: "test",
+              COUNT: "1",
+              WIDTH: "30",
+              HEIGHT: "30",
+              VIEWPOINT: "X",
+              POINTS: pointCloudData.length,
+              DATA: "assic",
+            },
+            pointCloudData,
+        };
+        const requestOptions = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              query: mutation,
+              variables: {
+                pdInput,
+              },
+            }),
+        };
+        const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+        const data = await response.json();
+        console.log(data)
+    }
+
+    generatefilename(){
+        const min = 10000000;
+        const max = 99999999;
+        return (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+    }
+
+    async submittoserver(){
+        var vertices = []
+        for(var i = 0; i < this.pointArray.length; i++){
+            var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
+            vertices = [...vertices, ...points];
+        }
+
+    }
+
+
     render(){
 
         console.log("child",this.props.workingFiles);

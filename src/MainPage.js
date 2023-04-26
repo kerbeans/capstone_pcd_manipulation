@@ -19,6 +19,8 @@ const dummyworkingFiles=[
     {id:8,fileName:'npx.lac2',filePath:'/bs/npx.lac',display:false}
 ]
 
+const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
+
 const {Sider, Content } = Layout;
 
 const contentStyle = {
@@ -31,43 +33,83 @@ const contentStyle = {
 const siderStyle = {
     textAlign: 'center',
     lineHeight: '120px',
-    minHeight: 360,
+    minHeight: 1000,
     minWidth:360,
     color: '#fff',
-    backgroundColor: '#252526',
+    backgroundColor: '#1E1E1E',
 };
 
 class MainPage extends React.Component{
     constructor(){
         super();
-        this.state={serverFiles:[],displayedItem:{fileType:'pcd',fileName:''},workingFiles:[],message:''};
+        this.state={serverFiles:[],displayedItem:{fileType:'pcd',fileName:''},workingFiles:[],message:'',maxpage:1,currentfile:[],pagenumber:10};
         this.loadData=this.loadData.bind(this);
         this.filterServerFiles=this.filterServerFiles.bind(this);
         this.uploadFile=this.uploadFile.bind(this);
-        this.deleteFile=this.deleteFile.bind(this);
+        this.updateList=this.updateList.bind(this);
     }
 
     filterServerFiles(searchKey){
-        const original=dummyListData;
+        const original=this.state.serverFiles;
         var filteredList=[];
         for(var i in original){
             if(original[i].fileName.search(searchKey)+1)
                 filteredList.push(original[i]);
         }
-        this.setState({serverFiles:filteredList});
+        this.setState({currentfile:filteredList});
     }
 
-    componentDidMount(){
-        this.loadData();
+    async componentDidMount(){
+        /*todo
+        dummylistdata 请求获得*/
+        const query = `
+        query initallist {
+          fileList(userid: 0, filterKey: "", page: 1) {
+            id
+            fileName
+            filePath
+          }
+        }
+      `;
+        const response = await fetch(GRAPHQL_SERVER_URL, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({query}),
+        })
+        const sourcelist = await response.json();
+        this.loadData(sourcelist.data.fileList);
+        this.setState({maxpage:Math.ceil(sourcelist.data.fileList.length/this.state.pagenumber)});
     }
 
     loadData(listData){
-        // load data
-        this.setState({serverFiles:listData});
+        this.setState({serverFiles:[...this.state.serverFiles,listData], currentfile:listData});
     }
-    deleteFile(item){
 
+    async updateList(){
+        const query = `
+        query initallist {
+          fileList(userid: 0, filterKey: "", page: 1) {
+            id
+            fileName
+            filePath
+          }
+        }
+      `;
+        const response = await fetch(GRAPHQL_SERVER_URL, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({query}),
+        })
+        const sourcelist = await response.json();
+        this.setState({serverFiles:sourcelist.data.fileList, currentfile:sourcelist.data.fileList, maxpage:Math.ceil(sourcelist.data.fileList.length/this.state.pagenumber)});
     }
+
     uploadFile(item){
         //  first add to searchList for displaying 
         for(var i in this.state.serverFiles){
@@ -81,13 +123,8 @@ class MainPage extends React.Component{
         return true;
     }
 
-    async getDummylist(){
-        const response = await fetch('https://api.example.com/data');
-        const result = await response.json();
-        //设置dummylist
-    }
     render(){
-        return <div>
+        return <div style={{'backgroundColor':'#1F1F1F'}}>
                 {/* <Space
                 direction="vertical"
                 style={{
@@ -111,14 +148,19 @@ class MainPage extends React.Component{
                 </Layout>   
             </Space> */}
             {/* this is the header panel*/}
-            <div style={{"width":'100%'}}>
+            <div style={{"width":'100%', 'backgroundColor':'#1F1F1F', 'height':'100vh'}}>
             {/* blow is the  searchPanel,main*/}
-                <div style={{"width":"100%","display":'inline',"float":"left","backgroundColor":'red'}} id="test1">
+                <div style={{"width":"100%","display":'inline',"float":"left", 'backgroundColor':'#1F1F1F'}} id="test1">
                 {/* write the search list here searchPanel*/}
                     < SearchPanel serverFiles={this.state.serverFiles} 
                     workingFiles={this.state.workingFiles} 
                     filterServerFiles={this.filterServerFiles}
                     uploadFile={this.uploadFile}
+                    maxpage={this.state.maxpage}
+                    currentfile={this.state.currentfile}
+                    pagenumber={this.state.pagenumber}
+                    loadData={this.loadData}
+                    updateList={this.updateList}
                     />
                 </div>
                 {/* <div style={{"width":"70%","display":'inline',"float":"left","backgroundColor":"green"}}>
