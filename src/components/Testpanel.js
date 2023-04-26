@@ -247,7 +247,7 @@ class Testpanel extends React.Component{
     switchNewmodel = (newname) => {
         const newmodel = this.getModelbyName(newname);
 
-        if( newmodel ){
+        if( newmodel !== undefined && newmodel !== null ){
             this.modelName = newname;
             this.translationControl.x = newmodel.position.x;
             this.translationControl.y = newmodel.position.y;
@@ -257,6 +257,9 @@ class Testpanel extends React.Component{
             this.rotationControl.z = newmodel.rotation.z;
             this.materialControl.color = newmodel.material.color;
             this.materialControl.size = newmodel.material.size;
+        }
+        else{
+            this.gui.domElement.style.display = 'none';
         }
     }
 
@@ -406,31 +409,36 @@ class Testpanel extends React.Component{
     
     saveModelbyName = () => {
         const points = this.getModelbyName(this.modelName);
-        const geometry = points.geometry;
-        const vertices = geometry.getAttribute('position').array;
-        const numPoints = vertices.length / 3;
-      
-        let pcdContent = `VERSION .7
-            FIELDS x y z
-            SIZE 4 4 4
-            TYPE F F F
-            COUNT 1 1 1
-            WIDTH ${numPoints}
-            HEIGHT 1
-            VIEWPOINT 0 0 0 1 0 0 0
-            POINTS ${numPoints}
-            DATA ascii\n`;
-      
-        for (let i = 0; i < vertices.length; i += 3) {
-          pcdContent += `${vertices[i]} ${vertices[i + 1]} ${vertices[i + 2]}\n`;
+        if(points!==undefined){
+            const geometry = points.geometry;
+            const vertices = geometry.getAttribute('position').array;
+            const numPoints = vertices.length / 3;
+            
+            let pcdContent = `VERSION .7
+                FIELDS x y z
+                SIZE 4 4 4
+                TYPE F F F
+                COUNT 1 1 1
+                WIDTH ${numPoints}
+                HEIGHT 1
+                VIEWPOINT 0 0 0 1 0 0 0
+                POINTS ${numPoints}
+                DATA ascii\n`;
+            
+            for (let i = 0; i < vertices.length; i += 3) {
+              pcdContent += `${vertices[i]} ${vertices[i + 1]} ${vertices[i + 2]}\n`;
+            }
+            const blob = new Blob([pcdContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = this.modelName + '.pcd';
+            link.click();
+            URL.revokeObjectURL(url);
         }
-        const blob = new Blob([pcdContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = this.modelName + '.pcd';
-        link.click();
-        URL.revokeObjectURL(url);
+        else{
+            alert("no model to save");
+        }
     }
     
 
@@ -471,9 +479,6 @@ class Testpanel extends React.Component{
         }
         
         this.removePoint();
-        //console.log(this.scene.children[5].geometry.attributes.position.array);  
-        //console.log(this.scene.children[5].geometry.attributes.position);
-        //this.saveMeshAsGLTF(this.transfertomesh(this.array))
     }
 
     findPointIndex = ()=>{
@@ -642,7 +647,7 @@ class Testpanel extends React.Component{
     async componentDidUpdate(prevProps, prevState) {
         if (prevProps.workingFiles !== this.props.workingFiles) {
             if(prevProps.workingFiles.length < this.props.workingFiles.length){
-                console.log(this.props.workingFiles)
+                this.gui.domElement.style.display = "block";
                 for(var i = 0; i < this.props.workingFiles.length; i++){
                     var model = this.props.workingFiles[i].fileName.split(".")[0];
                     if(this.pointArray.includes(model)){
@@ -650,8 +655,6 @@ class Testpanel extends React.Component{
                     }
                     else{
                         const points = await this.loadmodel(model);
-                        console.log(points)
-                        console.log("adsdasd")
                         const pointsGeometry = new THREE.BufferGeometry();
                         const positions = new Float32Array(points.length * 3);
                         for (let i = 0; i < points.length; i++) {
@@ -697,19 +700,18 @@ class Testpanel extends React.Component{
                         this.scene.add(pointCloud);
                         this.pointArray.push(model);
                         this.ownrender();
-                        //this.loader.load( 'http://localhost:3000/'+model+'.pcd', (points) => this.loaderfun(points, model))
                     }
                 }
             }
-            else{//移除模型的话
+            else{
                 const removedmodel = prevProps.workingFiles.filter(item => !this.props.workingFiles.includes(item))[0];
                 console.log("remove",removedmodel)
-                //this.updatemodel(removedmodel.fileName.split(".")[0]);
-                this.scene.remove(this.getModelbyName(removedmodel.fileName.split(".")[0]));
-                this.pointArray = this.pointArray.filter(item => item !== removedmodel.fileName.split(".")[0]);
-                this.modelName = this.pointArray[0];
-
-                this.ownrender();
+                if(this.getModelbyName(removedmodel.fileName.split(".")[0])!==undefined){
+                    this.scene.remove(this.getModelbyName(removedmodel.fileName.split(".")[0]));
+                    this.pointArray = this.pointArray.filter(item => item !== removedmodel.fileName.split(".")[0]);
+                    this.modelName = this.pointArray.length > 0 ? this.pointArray[0] : undefined;
+                    this.ownrender();
+                }
             }
         }
         if (prevProps.checkFiles != this.props.checkFiles) {
@@ -717,7 +719,7 @@ class Testpanel extends React.Component{
                 this.modelName = this.props.checkFiles.fileName.split(".")[0];
                 this.switchNewmodel(this.modelName);
                 //this.controls.target.copy(this.getModelbyName(this.modelName).position)
-                this.transformControls.attach(this.getModelbyName(this.modelName));
+                //this.transformControls.attach(this.getModelbyName(this.modelName));
             }
         }
     };
@@ -729,59 +731,63 @@ class Testpanel extends React.Component{
         }
         `;
         const model = this.getModelbyName(name);
-        const geometry = model.geometry;
-        geometry.applyMatrix4(model.matrix);
-        model.position.set(0, 0, 0);
-        model.rotation.set(0, 0, 0);
-        model.scale.set(1, 1, 1);
-        model.updateMatrix();
-        geometry.attributes.position.needsUpdate = true;
-        const updatedmodel = this.getModelbyName(name);
-        const points = updatedmodel.geometry.getAttribute('position').array
-        const pointCloudData = []
-        for (let i = 0; i < points.length; i += 3) {
-                const obj = {
-                  x: points[i],
-                  y: points[i + 1],
-                  z: points[i + 2]
-                };
-                pointCloudData.push(obj);
+        if(model !== undefined){
+            const geometry = model.geometry;
+            geometry.applyMatrix4(model.matrix);
+            model.position.set(0, 0, 0);
+            model.rotation.set(0, 0, 0);
+            model.scale.set(1, 1, 1);
+            model.updateMatrix();
+            geometry.attributes.position.needsUpdate = true;
+            const updatedmodel = this.getModelbyName(name);
+            const points = updatedmodel.geometry.getAttribute('position').array
+            const pointCloudData = []
+            for (let i = 0; i < points.length; i += 3) {
+                    const obj = {
+                      x: points[i],
+                      y: points[i + 1],
+                      z: points[i + 2]
+                    };
+                    pointCloudData.push(obj);
+            }
+            console.log(pointCloudData)
+            const pdInput = {
+                fileName: name + ".pcd",
+                header: {
+                  NOTE: "openvision4",
+                  VERSION: ".7",
+                  FIELDS: "x y z",
+                  TYPE: "F F F",
+                  COUNT: "1 1 1",
+                  WIDTH: "30",
+                  HEIGHT: "30",
+                  VIEWPOINT: "0 0 0 1 0 0 0",
+                  POINTS: pointCloudData.length,
+                  DATA: "ascii",
+                },
+                pointCloudData,
+            };
+            const requestOptions = {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify({
+                  query: mutation,
+                  variables: {
+                    userid:this.props.userid,
+                    pdInput:pdInput,
+                  },
+                }),
+            };
+            console.log(pdInput)
+            const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+            const data = await response.json();
         }
-        console.log(pointCloudData)
-        const pdInput = {
-            fileName: name + ".pcd",
-            header: {
-              NOTE: "openvision4",
-              VERSION: ".7",
-              FIELDS: "x y z",
-              TYPE: "F F F",
-              COUNT: "1 1 1",
-              WIDTH: "30",
-              HEIGHT: "30",
-              VIEWPOINT: "0 0 0 1 0 0 0",
-              POINTS: pointCloudData.length,
-              DATA: "ascii",
-            },
-            pointCloudData,
-        };
-        const requestOptions = {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              query: mutation,
-              variables: {
-                userid:this.props.userid,
-                pdInput:pdInput,
-              },
-            }),
-        };
-        console.log(pdInput)
-        const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
-        const data = await response.json();
-        console.log(data)
+        else{
+            alert("no model")
+        }
     }
 
 
@@ -885,8 +891,10 @@ class Testpanel extends React.Component{
             var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
             vertices = [...vertices, ...points];
         }
-        await this.updatemodelbypoints(vertices)
-        this.props.updateList();
+        if(vertices.length > 0){
+            await this.updatemodelbypoints(vertices)
+            this.props.updateList();
+        }
     }
 
     render(){
