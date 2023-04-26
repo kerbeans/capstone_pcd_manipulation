@@ -148,7 +148,7 @@ class MainPage extends React.Component{
           message:'',
           maxpage:1,
           currentfile:[],
-          pagenumber:5,
+          pagenumber:3,
           loged:false
         };
         this.loadData=this.loadData.bind(this);

@@ -92,6 +92,8 @@ class Testpanel extends React.Component{
         this.submittoserver = this.submittoserver.bind(this);
         this.updatemodelbypoints = this.updatemodelbypoints.bind(this);
         this.generatefilename = this.generatefilename.bind(this);
+        this.loadlocalfile = this.loadlocalfile.bind(this);
+        this.deleteworkingfile = this.deleteworkingfile.bind(this);
     }
     
     
@@ -102,6 +104,7 @@ class Testpanel extends React.Component{
     }
 
     init = () =>{ 
+        this.pointControlFoler.domElement.style.display = 'none'
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.mount.appendChild( this.renderer.domElement );
@@ -129,7 +132,7 @@ class Testpanel extends React.Component{
         this.scene.add( dirLight );
         this.folder.add(this.camera, 'fov', 1, 180).onChange(this.updateCamera);
         this.folder.add(this.camera, 'near', 1, 200).onChange(this.updateCamera);
-        this.folder.add(this.camera, 'far', 1, 200).onChange(this.updateCamera);
+        //this.folder.add(this.camera, 'far', 1, 200).onChange(this.updateCamera);
         const name = 'horse'
         //this.loader.load( 'http://localhost:3000/horse.pcd', (points) => this.loaderfun(points, name))
         this.modelName = name;
@@ -142,7 +145,7 @@ class Testpanel extends React.Component{
         //window.addEventListener('dblclick',this.reqFullScreen);
         window.addEventListener( 'resize', this.handleresize);
         this.gui.open();
-        this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
+        this.renderer.setSize( window.innerWidth*0.80, window.innerHeight );
         this.ownrender();
     }
     
@@ -152,8 +155,15 @@ class Testpanel extends React.Component{
     }
     /*update model in the scene*/
 
+    async loadlocalfile(url){
+        console.log(url.result)
+        const reader = new FileReader();
+        //this.loader.load('C:\\Users\\ShaoxingWang\\Downloads\\Zaghetto.pcd', (points) => this.loaderfun(points, name));
+    }
+
     //设置点的属性，并用gui控制模型的属性。
     loaderfun = (points,name) => {
+        console.log(points)
         points.name = name
         points.geometry.center(0,0,0);
         points.geometry.rotateX( Math.PI );
@@ -186,6 +196,17 @@ class Testpanel extends React.Component{
         else{
             this.switchNewmodel(name);
         }
+        this.ownrender();
+    }
+
+    deleteworkingfile = () =>{
+        const name = this.modelName;
+        this.scene.remove(this.getModelbyName(this.modelName));
+        this.modelName = this.pointArray[0].length === 0? '':this.pointArray[0]; 
+        if(this.modelName !== ''){
+            this.switchNewmodel(this.modelName);
+        }
+        this.pointArray = this.pointArray.filter(item => item !== name);
         this.ownrender();
     }
 
@@ -336,27 +357,32 @@ class Testpanel extends React.Component{
             var points = this.getModelbyName(this.pointArray[i]).geometry.getAttribute('position').array;
             vertices = [...vertices, ...points];
         }
-        const numPoints = vertices.length/3;
-        let pcdContent = `VERSION .7
-            FIELDS x y z
-            SIZE 4 4 4
-            TYPE F F F
-            COUNT 1 1 1
-            WIDTH ${numPoints}
-            HEIGHT 1
-            VIEWPOINT 0 0 0 1 0 0 0
-            POINTS ${numPoints}
-            DATA ascii\n`;
-        for (let i = 0; i < vertices.length; i += 3) {
-            pcdContent += `${vertices[i]} ${vertices[i + 1]} ${vertices[i + 2]}\n`;
-          }
-        const blob = new Blob([pcdContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download =  this.generatefilename() + '.pcd';
-        link.click();
-        URL.revokeObjectURL(url);
+        if(vertices.length ===  0){
+            alert('no model to save');
+        }
+        else{
+            const numPoints = vertices.length/3;
+            let pcdContent = `VERSION .7
+                FIELDS x y z
+                SIZE 4 4 4
+                TYPE F F F
+                COUNT 1 1 1
+                WIDTH ${numPoints}
+                HEIGHT 1
+                VIEWPOINT 0 0 0 1 0 0 0
+                POINTS ${numPoints}
+                DATA ascii\n`;
+            for (let i = 0; i < vertices.length; i += 3) {
+                pcdContent += `${vertices[i]} ${vertices[i + 1]} ${vertices[i + 2]}\n`;
+              }
+            const blob = new Blob([pcdContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download =  this.generatefilename() + '.pcd';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
     }
 
     saveAsmesh = async (name) => {
@@ -614,11 +640,6 @@ class Testpanel extends React.Component{
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        //console.log("TestPanel componentDidUpdate");
-        //console.log("Previous props:", prevProps);
-        //console.log("Current props:", this.props);
-        //console.log("Previous state:", prevState);
-        //console.log("Current state:", this.state);
         if (prevProps.workingFiles !== this.props.workingFiles) {
             if(prevProps.workingFiles.length < this.props.workingFiles.length){
                 console.log(this.props.workingFiles)
@@ -867,7 +888,6 @@ class Testpanel extends React.Component{
         await this.updatemodelbypoints(vertices)
         this.props.updateList();
     }
-
 
     render(){
         console.log("child",this.props.workingFiles);
