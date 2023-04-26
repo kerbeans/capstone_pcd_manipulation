@@ -26,7 +26,7 @@ function readDirRecursively(dir) {
     if (stat.isDirectory()) {
       readDirRecursively(filePath);
     } else {
-      pointFiles.push({id:fileindex, fileName: file, filePath: filePath ,modifiedDate:new Date()});
+      pointFiles.push({id:fileindex, fileName: file, filePath: filePath ,modifiedDate:new Date(),uid:0});
       fileindex+=1;
     }
   }
@@ -39,6 +39,10 @@ readDirRecursively(directoryPath);
 
 db.pointFiles.remove({});
 db.counters.remove({});
+db.users.remove({});
+
+db.users.insert({userid:0,password:""});
+
 
 db.pointFiles.insertMany(pointFiles);
 const count = db.pointFiles.count();

@@ -78,6 +78,7 @@ class fileManipulator{
         // Combine header and point data, then write to file
       let pcdContent = pcdHeader + pcdData + '\n';
       let signal=false;
+
       fs.writeFile(filename, pcdContent,(error)=>{
         if(error){
           console.log('saving error',error);

@@ -8,6 +8,7 @@ const {GraphQLScalarType} = require('graphql');
 const {MongoClient} = require('mongodb');
 const {Kind} =require('graphql/language');
 const fileManipulator=require('./fileEntity.js');
+const { resourceLimits } = require('worker_threads');
 const FILEPATH='./data'
 let db
 
@@ -35,21 +36,27 @@ const GraphQLDate = new GraphQLScalarType({
 
 async function fileList(_,{userid,filterKey,page}){//finished 
     if(filterKey===""){
-        let res=await db.collection('pointFiles').find().toArray();//.slice((page-1)*10,page*10).toArray();
-        if(res.length>10*(page-1)){
-             res=res.splice((page-1)*10,page*10);
-             return res;
-        }
+        let res=await db.collection('pointFiles').find({uid:userid}).toArray();//.slice((page-1)*10,page*10).toArray();
+        if(res.length>=1){
+            return res;
+        }   
         else{
             return [];
         }
+        // if(res.length>10*(page-1)){
+        //      res=res.splice((page-1)*10,page*10);
+        //      return res;
+        // }
+        // else{
+        //     return [];
+        // }
     }
     else
         return db.collection('pointFiles').findMany({$contain:{fileName:filterKey}}).toArray().slice((page-1)*10,page*10).toArray();
 }
 
 async function changeFileName(_,{userid,oriName,newName}){//unfinished *
-    let res = await db.collection('pointFiles').find({fileName:oriName}).toArray();
+    let res = await db.collection('pointFiles').find({fileName:oriName,uid:userid}).toArray();
     if(res.length<1)
         return false;
     let path=res[0].filePath.split("/");//.join()
@@ -57,8 +64,8 @@ async function changeFileName(_,{userid,oriName,newName}){//unfinished *
     path=path.join("/")
     //update filepath 
     if(fs.existsSync(res[0].filePath) && !fs.existsSync(path)){
-        fm.changeFileName("./data/0/"+oriName,"./data/0/"+newName);
-        await db.collection('pointFiles').findOneAndUpdate({fileName:oriName},{$set:{fileName:newName,filePath:path,modifiedDate:new Date()}},{returnOriginal:false});
+        fm.changeFileName("./data/"+userid+"/"+oriName,"./data/"+userid+"/"+newName);
+        await db.collection('pointFiles').findOneAndUpdate({fileName:oriName,uid:userid},{$set:{fileName:newName,filePath:path,modifiedDate:new Date()}},{returnOriginal:false});
         return true;
     }
     else{
@@ -68,13 +75,13 @@ async function changeFileName(_,{userid,oriName,newName}){//unfinished *
 
 
 async function deleteFile(_,{userid,fileName}){
-    const res=await db.collection('pointFiles').find({fileName:fileName}).toArray();
+    const res=await db.collection('pointFiles').find({fileName:fileName,uid:userid}).toArray();
     if(res.length<1){
         return false;
     }
     else if(fs.existsSync(res[0].filePath)){
         fm.deleteFile(res[0].filePath);
-        await db.collection('pointFiles').deleteOne({fileName:fileName})
+        await db.collection('pointFiles').deleteOne({fileName:fileName,uid:userid})
         return true;
     }
     else 
@@ -82,7 +89,7 @@ async function deleteFile(_,{userid,fileName}){
 }
 
 async function downloadFile(_,{userid,fileName}){//download from server to local
-    const res= await db.collection('pointFiles').find({fileName:fileName}).toArray();
+    const res= await db.collection('pointFiles').find({fileName:fileName,uid:userid}).toArray();
     if(res.length>=1){
         return fm.readPCDFile(res[0].filePath);
     }
@@ -91,7 +98,14 @@ async function downloadFile(_,{userid,fileName}){//download from server to local
 }
 
 async function uploadFile(_,{userid,pointd}){//upload to server
-    if(fm.saveFile(pointd,"./data/0/"+pointd.fileName)){
+    if (!fs.existsSync('./data/'+userid)) {
+        fs.mkdirSync('./data/'+userid);
+        console.log(`Folder created at ${userid}`);
+      } else {
+        console.log(`Folder already exists at ${userid}`);
+      }
+
+    if(fm.saveFile(pointd,"./data/"+userid+"/"+pointd.fileName)){
         async function getNextSequence(name) {
             const result = await db.collection('counters').findOneAndUpdate(
                 { _id: name },//find the entry that matches this _id
@@ -102,16 +116,18 @@ async function uploadFile(_,{userid,pointd}){//upload to server
         }
         let fileDesc={
             fileName:pointd.fileName,
-            filePath:'./data/0/'+pointd.fileName,
-            modifiedDate:new Date()}
-        let res =await db.collection('pointFiles').find({fileName:pointd.fileName}).toArray();
+            filePath:'./data/'+userid+'/'+pointd.fileName,
+            modifiedDate:new Date(),
+            uid:userid,
+        }
+        let res =await db.collection('pointFiles').find({fileName:pointd.fileName,uid:userid}).toArray();
         if(res.length<1){
             fileDesc.id = await getNextSequence('fixedindex');
             res=await db.collection('pointFiles').insertOne(fileDesc);
             return fileDesc.id;
         }
         else{
-            res = await db.collection('pointFiles').findOneAndUpdate({fileName:pointd.fileName},{$set:{modifiedDate:new Date()}},{returnOriginal:true});
+            res = await db.collection('pointFiles').findOneAndUpdate({fileName:pointd.fileName,uid:userid},{$set:{modifiedDate:new Date()}},{returnOriginal:true});
             return res.value.id;
         }
     }
@@ -121,13 +137,44 @@ async function uploadFile(_,{userid,pointd}){//upload to server
     
 }
 
+async function login(_,{userid,password}){
+    let res=await db.collection('users').find({userid:userid}).toArray();
+    if(res.length<1){
+        return "invalid username";
+    }
+    else{
+        res=await db.collection('users').find({userid:userid,password:password}).toArray();
+        if(res.length<1){
+            return "incorrect password";
+        }
+        return "success";
+    }
+}
+
+
+async function registration(_,{userid,password}){
+    let res =await db.collection('users').find({userid:userid}).toArray();
+    if(res.length>=1){
+        return "username exsits";
+    }
+    else{
+        await db.collection("users").insertOne({userid:userid,password:password});
+        res = await db.collection("users").find({userid:userid,password:password}).toArray();
+        if(res.length>=1){
+            return "success";
+        }
+        return "registration failed";
+    }
+}
 
 const app=express();
 app.use(express.static('public'));
 
 const resolvers={
     Query:{
-        fileList
+        fileList,
+        login,
+        registration
     },
     Mutation:{
         changeFileName,
@@ -166,7 +213,7 @@ async function connectToDb(){
     console.log('connected to capstone MongoDB at',url);
     db=client.db();
 }
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '1000mb' }));
 app.set('port', 5000);
 (async function(){
     try{

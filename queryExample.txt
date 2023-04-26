@@ -42,3 +42,14 @@ mutation mutationdeletefile{
 mutation mutationchangefilename{
   changeFileName(userid:0,oriName:"created_new.pcd",newName:"created_nn.pcd")
 }
+
+
+#query for login----------
+query querylogin{
+  login(userid:0,password:"")
+}
+
+#query for registration-----------
+query queryregistration{
+  registration(userid:1,password:"1")
+}
