@@ -7,8 +7,6 @@ import { GLTFExporter } from '../../node_modules/three/examples/jsm/exporters/GL
 import {DragControls} from '../../node_modules/three/examples/jsm/controls/DragControls.js';
 import {TransformControls} from '../../node_modules/three/examples/jsm/controls/TransformControls.js';
 import Delaunator from 'delaunator';
-import { ConvexHull } from '../../node_modules/three/examples/jsm/math/ConvexHull.js';
-import { ConvexGeometry } from '../../node_modules/three/examples/jsm/geometries/ConvexGeometry.js';
 import { getTransitionName } from "antd/es/_util/motion.js";
 
 const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
@@ -61,7 +59,7 @@ class Testpanel extends React.Component{
     mouse = new THREE.Vector2();
     pointArray = [];
     exist = false;
-
+    candelete = false;
     constructor(props){
         super();
         this.init= this.init.bind(this);
@@ -94,6 +92,8 @@ class Testpanel extends React.Component{
         this.generatefilename = this.generatefilename.bind(this);
         this.loadlocalfile = this.loadlocalfile.bind(this);
         this.deleteworkingfile = this.deleteworkingfile.bind(this);
+        this.addlocalpoint = this.addlocalpoint.bind(this);
+        this.updatemodelbymesh = this.updatemodelbymesh.bind(this);
     }
     
     
@@ -145,19 +145,38 @@ class Testpanel extends React.Component{
         //window.addEventListener('dblclick',this.reqFullScreen);
         window.addEventListener( 'resize', this.handleresize);
         this.gui.open();
+        this.gui.domElement.style.display = 'none';
         this.renderer.setSize( window.innerWidth*0.80, window.innerHeight );
         this.ownrender();
     }
     
+    async addlocalpoint (points, name){
+        await this.updatemodelbymesh(points,name);
+        this.props.addModel(name,points);
+    }
     handleresize = () =>{
         this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
         this.ownrender();
     }
     /*update model in the scene*/
 
-    async loadlocalfile(url){
-        console.log(url.result)
-        const reader = new FileReader();
+    async loadlocalfile(bin){
+        console.log("dasd",bin)
+        this.loader.parse(bin, (points) => {
+            const material = new THREE.PointsMaterial({
+                size: 0.1, // 您可以根据需要调整点的大小
+                color: 0xff0000, // 设置点的颜色为红色
+              });
+            points.name = "asdasd"
+            points.material = material; 
+            points.geometry.center(0,0,0);
+            points.geometry.rotateX( Math.PI );
+            console.log("asdqe")
+            this.scene.add(points);
+            console.log(this.scene);
+            this.ownrender();
+            // 更新Three.js渲染器以显示点云
+          });
         //this.loader.load('C:\\Users\\ShaoxingWang\\Downloads\\Zaghetto.pcd', (points) => this.loaderfun(points, name));
     }
 
@@ -201,13 +220,20 @@ class Testpanel extends React.Component{
 
     deleteworkingfile = () =>{
         const name = this.modelName;
-        this.scene.remove(this.getModelbyName(this.modelName));
-        this.modelName = this.pointArray[0].length === 0? '':this.pointArray[0]; 
-        if(this.modelName !== ''){
-            this.switchNewmodel(this.modelName);
+        if(this.candelete === true){
+            this.scene.remove(this.getModelbyName(this.modelName));
+            this.modelName = this.pointArray[0].length === 0? '':this.pointArray[0]; 
+            if(this.modelName !== ''){
+                this.switchNewmodel(this.modelName);
+            }
+            this.pointArray = this.pointArray.filter(item => item !== name);
+            if(this.pointArray.length === 0){
+                this.gui.domElement.style.display = 'none';
+            }
+            this.ownrender();
+        }else{
+            alert("Please choose one files");
         }
-        this.pointArray = this.pointArray.filter(item => item !== name);
-        this.ownrender();
     }
 
     updatepanelrotationpanel(){
@@ -259,7 +285,7 @@ class Testpanel extends React.Component{
             this.materialControl.size = newmodel.material.size;
         }
         else{
-            this.gui.domElement.style.display = 'none';
+            //this.gui.domElement.style.display = 'none';
         }
     }
 
@@ -705,7 +731,6 @@ class Testpanel extends React.Component{
             }
             else{
                 const removedmodel = prevProps.workingFiles.filter(item => !this.props.workingFiles.includes(item))[0];
-                console.log("remove",removedmodel)
                 if(this.getModelbyName(removedmodel.fileName.split(".")[0])!==undefined){
                     this.scene.remove(this.getModelbyName(removedmodel.fileName.split(".")[0]));
                     this.pointArray = this.pointArray.filter(item => item !== removedmodel.fileName.split(".")[0]);
@@ -718,12 +743,75 @@ class Testpanel extends React.Component{
             if(this.props.checkFiles != null){
                 this.modelName = this.props.checkFiles.fileName.split(".")[0];
                 this.switchNewmodel(this.modelName);
+                this.candelete = true
                 //this.controls.target.copy(this.getModelbyName(this.modelName).position)
                 //this.transformControls.attach(this.getModelbyName(this.modelName));
+            }
+            else{
+                this.candelete = false
             }
         }
     };
     
+    async updatemodelbymesh(mesh,name){
+        const mutation = `
+        mutation UploadFileMutation($userid: Int!,$pdInput: PointDataInput!) {
+          uploadFile(userid: $userid, pointd: $pdInput)
+        }
+        `;
+        const model = mesh
+        console.log("hahah",mesh)
+        if(model !== undefined){
+            const points = model.geometry.getAttribute('position').array
+            const pointCloudData = []
+            for (let i = 0; i < points.length; i += 3) {
+                    const obj = {
+                      x: points[i],
+                      y: points[i + 1],
+                      z: points[i + 2]
+                    };
+                    pointCloudData.push(obj);
+            }
+            console.log(pointCloudData)
+            const pdInput = {
+                fileName: name + ".pcd",
+                header: {
+                  NOTE: "openvision4",
+                  VERSION: ".7",
+                  FIELDS: "x y z",
+                  TYPE: "F F F",
+                  COUNT: "1 1 1",
+                  WIDTH: "30",
+                  HEIGHT: "30",
+                  VIEWPOINT: "0 0 0 1 0 0 0",
+                  POINTS: pointCloudData.length,
+                  DATA: "ascii",
+                },
+                pointCloudData,
+            };
+            const requestOptions = {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify({
+                  query: mutation,
+                  variables: {
+                    userid:this.props.userid,
+                    pdInput:pdInput,
+                  },
+                }),
+            };
+            console.log(pdInput)
+            const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+            const data = await response.json();
+        }
+        else{
+            alert("no model")
+        }
+    }
+
     async updatemodel(name){
         const mutation = `
         mutation UploadFileMutation($userid: Int!,$pdInput: PointDataInput!) {
