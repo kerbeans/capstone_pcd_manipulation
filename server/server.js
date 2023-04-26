@@ -166,7 +166,7 @@ async function connectToDb(){
     console.log('connected to capstone MongoDB at',url);
     db=client.db();
 }
-
+app.use(express.json({ limit: '100mb' }));
 app.set('port', 5000);
 (async function(){
     try{
