@@ -6,7 +6,7 @@ import { GUI } from '../../node_modules/three/examples/jsm/libs/lil-gui.module.m
 import { GLTFExporter } from '../../node_modules/three/examples/jsm/exporters/GLTFExporter.js';
 import {DragControls} from '../../node_modules/three/examples/jsm/controls/DragControls.js';
 import {TransformControls} from '../../node_modules/three/examples/jsm/controls/TransformControls.js';
-import Delaunator from 'delaunator';
+//import Delaunator from 'delaunator';
 import { getTransitionName } from "antd/es/_util/motion.js";
 
 const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
@@ -71,7 +71,7 @@ class Testpanel extends React.Component{
         this.addPoint = this.addPoint.bind(this);   
         this.removePoint =this.removePoint.bind(this);
         this.showInfaandmode =this.showInfaandmode.bind(this);
-        this.transfertomesh = this.transfertomesh.bind(this);
+        //this.transfertomesh = this.transfertomesh.bind(this);
         this.saveMeshAsGLTF = this.saveMeshAsGLTF.bind(this);
         this.ownrender = this.ownrender.bind(this);
         this.updatepanelrotationpanel = this.updatepanelrotationpanel.bind(this);
@@ -536,7 +536,7 @@ class Testpanel extends React.Component{
         }
     }
 
-    transfertomesh(points){
+    /*transfertomesh(points){
         const delaunay = Delaunator.from(points);
 
         // 创建Three.js几何体
@@ -554,7 +554,7 @@ class Testpanel extends React.Component{
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const mesh = new THREE.Mesh(geometry, material);
         return mesh;
-    }
+    }*/
 
     saveMeshAsGLTF(mesh) {
         console.log("asdasd")
