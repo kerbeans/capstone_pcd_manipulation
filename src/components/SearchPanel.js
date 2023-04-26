@@ -414,16 +414,7 @@ export default function SearchPanel(props){
                   setWrokingFiles([...workingFiles,item]);
                 }}/>
                 <div style={{display:'flex', padding:'20px 20px 0px 20px'}}>
-                <button onClick={handleopenfileclick} title='open' style={buttonstyle}>
-                  <svg t="1682355538847" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="51744" width="20" height="20"><path d="M654.5408 353.6896a57.2416 57.2416 0 0 1-57.1904-57.1904V79.872H239.36a112.1792 112.1792 0 0 0-112.2304 112.1792v636.5696a112.1792 112.1792 0 0 0 112.2304 112.2304h532.0192a112.1792 112.1792 0 0 0 112.2304-112.2304V353.6896z m37.4784 354.5088H318.72a20.0704 20.0704 0 0 1 0-40.1408h373.2992a20.0704 20.0704 0 0 1 0 40.1408z m0-181.6576H318.72a20.0704 20.0704 0 0 1 0-40.1408h373.2992a20.0704 20.0704 0 1 1 0 40.1408z" fill="#707070" p-id="51745"></path><path d="M654.5408 313.5488h229.0688a41.472 41.472 0 0 0-12.8-29.7984l-202.0352-192.4608a40.96 40.96 0 0 0-28.5184-11.4176h-2.7648v216.6272a17.0496 17.0496 0 0 0 17.0496 17.0496z" fill="#707070" p-id="51746"></path></svg>
-                </button>
-                <input
-                ref={fileInputRef}
-                type="file"
-              accept=".pcd"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-              />
+
                 <button onClick={handleDownload} style={buttonstyle} title='download'>
                   <svg t="1682355462532" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="50677" width="20" height="20"><path d="M498.176 726.2208a31.9488 31.9488 0 0 0 45.1072 0.6144l263.0144-255.232a31.9488 31.9488 0 0 0-22.1184-54.8864l-143.36-0.512V104.6016h-235.52v310.7328L270.7456 414.72a31.8976 31.8976 0 0 0-22.9888 54.272z" fill="#707070" p-id="50678"></path><path d="M904.704 609.8944l-168.0384 0.6144-157.696 153.0368a83.3024 83.3024 0 0 1-117.4528-1.6896l-146.0224-149.8624-204.8 0.6656h-23.04v219.0336a109.568 109.568 0 0 0 109.4656 109.4144h644.1984a109.568 109.568 0 0 0 109.4656-109.4144v-221.7984z" fill="#707070" p-id="50679"></path></svg>                
                 </button>
