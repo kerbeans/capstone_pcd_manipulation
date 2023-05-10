@@ -1,4 +1,4 @@
-import {memo, useState, useCallback,useMemo,useRef} from 'react'
+import {memo, useState, useCallback,useMemo,useRef, useEffect} from 'react'
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Testpanel from './Testpanel';
@@ -151,33 +151,24 @@ const Container=memo( function Container({onDrop,contents,accept}){
 //删除物件
 function deleteItem(item,list,key){
   let newList=[];
-  console.log('init',item,list);
   for(var i in list){
-    console.log(item[key],list[i][key],'what');
     if(item[key]!=list[i][key]){
       newList.push(list[i]);
     }
   }
-  console.log(newList,'newlist');
   return newList;
 }
-//发送一个请求
-
-//往下拖就保存，往上拖加载
-
-//不要设置保存了，直接往下拖
-
-//删除功能
-
-
 
 export default function SearchPanel(props){
     const ref = useRef(null);
     const [showModal, setShowModal] = useState(false);
     const [inputText, setInputText] = useState('');
     const [workingFiles, setWrokingFiles]=useState([]);
+    //工作区的文件
     const [checkFiles, setCheckFiles]=useState(null);
     const [selectedId, setSelectedId] = useState(null);
+    const [prevWorkingFilesLength, setPrevWorkingFilesLength] = useState(0);
+    //服务器上的文件
     const [selectedServerfilesId, setSelectedserverFilesid] = useState(null);
     const [selectedServerfilesName, setSelectedserverFilesname] = useState(null);
     const [selectedServerfileChecked, setSelectedserverFileChecked] = useState(false);
@@ -190,6 +181,7 @@ export default function SearchPanel(props){
           return undefined;
       }
       setWrokingFiles([...workingFiles,newitem]);
+      setSelectedId(newitem.id);
     },[workingFiles]);
 
     const toServer=useCallback(async (item)=>{
@@ -198,17 +190,48 @@ export default function SearchPanel(props){
         fileName:item.info.fileName,
         filePath:item.info.filePath
       };
-      setWrokingFiles(deleteItem(newItem,workingFiles,'id'));
-      //console.log("newltem",newItem.fileName.split('.')[0])
-      await ref.current.updatemodel(newItem.fileName.split('.')[0]);
-      console.log('finished')
+      await setWrokingFiles(deleteItem(newItem,workingFiles,'id'));
+      if(workingFiles.length===0){
+        setSelectedId(null);
+      }
+      //await ref.current.updatemodel(newItem.fileName.split('.')[0]);
       props.updateList();
     },[workingFiles])
 
+    useEffect(() => {
+      // 当 workingFiles 发生变化时，检查其长度是否大于 0
+      const currentLength = workingFiles.length;
+      if (currentLength === 0) {
+        // 如果有内容，延迟一段时间后设置为空数组
+        console.log("settimeout")
+        setSelectedId(null);
+        setCheckFiles(null);
+      }
+      else if(currentLength<prevWorkingFilesLength){
+        setSelectedId(workingFiles[0].id);
+        setCheckFiles(workingFiles[0].fileName);
+        ref.current.setCurrentModel(workingFiles[0].fileName.split('.')[0]);
+      }
+      setPrevWorkingFilesLength(currentLength);
+    }, [workingFiles]);
+
     const handleCheckboxChange = (info, isChecked) => {
       setSelectedId(isChecked ? info.id : null);
-      setCheckFiles(info);
+      setCheckFiles(info.fileName);
+      ref.current.setCurrentModel(info.fileName.split('.')[0]);
     };
+
+
+    const setSelectedIdintestpanel=(name)=>{
+      for(var i in workingFiles){
+        if(workingFiles[i].fileName===name+'.pcd'){
+          setSelectedId(workingFiles[i].id);
+          setCheckFiles(workingFiles[i].fileName);
+          ref.current.setCurrentModel(name);
+          break;
+        }
+      }
+    }
 
     const handleSelectedserverFile = (info, isChecked) => {
       console.log("serverfile",info)
@@ -319,7 +342,12 @@ export default function SearchPanel(props){
     };
 
     const submitfile=()=>{
-      ref.current.submittoserver();
+      if(selectedId===null){
+        alert("Please select a file")
+      }else{
+        ref.current.submittoserver();
+        alert("Submit successfully")
+      }
     };
 
     const handleDelete = async()=>{
@@ -352,13 +380,18 @@ export default function SearchPanel(props){
       }
     }
 
-    const handledeleteworkingfile = () =>{
+    const handledeleteworkingfile = async () =>{
+      if(selectedId===null){
+        alert("Please select a file") 
+      }
+      else{
       ref.current.deleteworkingfile();
       for(var i in workingFiles){
         if(workingFiles[i].id===selectedId){
-          setWrokingFiles(deleteItem(workingFiles[i],workingFiles,'id'));
+          var list = deleteItem(workingFiles[i],workingFiles,'id')
+          await setWrokingFiles(list);
         }
-      }
+      }}
     }
 
     const fileInputRef = useRef(null);
@@ -367,6 +400,10 @@ export default function SearchPanel(props){
       if (fileInputRef.current) {
         fileInputRef.current.click();
       }
+    }
+
+    const refresh = () => {
+      props.updateList();
     }
 
     const handleFileChange = async (event) => {
@@ -484,6 +521,9 @@ export default function SearchPanel(props){
                       <button onClick={handleAxis} style={buttonstyle}>
                     <svg t="1682443109907" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="25350" width="20" height="20"><path d="M817.152 102.4H208.128a122.88 122.88 0 0 0-122.88 122.88v438.1184a122.88 122.88 0 0 0 122.88 122.88h609.28a122.88 122.88 0 0 0 122.88-122.88V225.28a122.88 122.88 0 0 0-123.136-122.88zM803.84 335.872l-232.96 226.3552a34.7136 34.7136 0 0 1-49.7664-1.4848L396.4416 424.6528l-146.176 146.176a20.48 20.48 0 1 1-28.9792-28.9792l150.8352-150.784a34.6624 34.6624 0 0 1 50.1248 1.0752l124.7232 136.192 228.1984-221.7984a20.48 20.48 0 1 1 28.672 29.3376zM881.6128 918.2208H143.616a27.9552 27.9552 0 1 1 0-55.8592h737.9968a27.9552 27.9552 0 1 1 0 55.8592z" fill="#707070" p-id="25351"></path></svg>
                     </button> 
+                    <button onClick={refresh} style={buttonstyle}>
+                    <svg t="1683703812002" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="27210" width="20" height="20"><path d="M684.032 403.456q-17.408-8.192-15.872-22.016t11.776-22.016q3.072-2.048 19.968-15.872t41.472-33.28q-43.008-49.152-102.4-77.312t-129.024-28.16q-64.512 0-120.832 24.064t-98.304 66.048-66.048 98.304-24.064 120.832q0 63.488 24.064 119.808t66.048 98.304 98.304 66.048 120.832 24.064q53.248 0 100.864-16.896t87.04-47.616 67.584-72.192 41.472-90.624q7.168-23.552 26.624-38.912t46.08-15.36q31.744 0 53.76 22.528t22.016 53.248q0 14.336-5.12 27.648-21.504 71.68-63.488 132.096t-99.84 103.936-128.512 68.096-148.48 24.576q-95.232 0-179.2-35.84t-145.92-98.304-98.304-145.92-36.352-178.688 36.352-179.2 98.304-145.92 145.92-98.304 179.2-36.352q105.472 0 195.584 43.52t153.6 118.272q23.552-17.408 39.424-30.208t19.968-15.872q6.144-5.12 13.312-7.68t13.312 0 10.752 10.752 6.656 24.576q1.024 9.216 2.048 31.232t2.048 51.2 1.024 60.416-1.024 58.88q-1.024 34.816-16.384 50.176-8.192 8.192-24.576 9.216t-34.816-3.072q-27.648-6.144-60.928-13.312t-63.488-14.848-53.248-14.336-29.184-9.728z" p-id="27211" fill="#707070"></path></svg>                    
+                    </button> 
                     </div>
                     <Container 
                       onDrop={toServer}
@@ -504,7 +544,7 @@ export default function SearchPanel(props){
           </Sider>
           <Layout>
             <Content>
-              <Testpanel userid={userid} workingFiles={workingFiles} checkFiles={checkFiles} ref={ref} updateList={props.updateList}/>
+              <Testpanel userid={userid} workingFiles={workingFiles} checkFiles={checkFiles} ref={ref} updateList={props.updateList} setId={setSelectedIdintestpanel}/>
               {showModal && (
                 <div
                   style={{

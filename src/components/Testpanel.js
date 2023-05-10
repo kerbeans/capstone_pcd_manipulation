@@ -152,8 +152,9 @@ class Testpanel extends React.Component{
     
     async addlocalpoint (points, name){
         await this.updatemodelbymesh(points,name);
-        this.props.addModel(name,points);
+        //this.props.addModel(name,points);
     }
+
     handleresize = () =>{
         this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
         this.ownrender();
@@ -220,7 +221,6 @@ class Testpanel extends React.Component{
 
     deleteworkingfile = () =>{
         const name = this.modelName;
-        if(this.candelete === true){
             this.scene.remove(this.getModelbyName(this.modelName));
             this.modelName = this.pointArray[0].length === 0? '':this.pointArray[0]; 
             if(this.modelName !== ''){
@@ -230,10 +230,8 @@ class Testpanel extends React.Component{
             if(this.pointArray.length === 0){
                 this.gui.domElement.style.display = 'none';
             }
+            this.props.setId(this.modelName);
             this.ownrender();
-        }else{
-            alert("Please choose one file to delete");
-        }
     }
 
     updatepanelrotationpanel(){
@@ -732,16 +730,22 @@ class Testpanel extends React.Component{
             else{
                 const removedmodel = prevProps.workingFiles.filter(item => !this.props.workingFiles.includes(item))[0];
                 if(this.getModelbyName(removedmodel.fileName.split(".")[0])!==undefined){
+                    await this.updatemodel(removedmodel.fileName.split(".")[0])
                     this.scene.remove(this.getModelbyName(removedmodel.fileName.split(".")[0]));
                     this.pointArray = this.pointArray.filter(item => item !== removedmodel.fileName.split(".")[0]);
                     this.modelName = this.pointArray.length > 0 ? this.pointArray[0] : undefined;
                     this.ownrender();
+                    if(this.pointArray.length === 0){
+                        this.gui.domElement.style.display = "none";
+                        this.ownrender();
+                    }
                 }
             }
         }
         if (prevProps.checkFiles != this.props.checkFiles) {
             if(this.props.checkFiles != null){
-                this.modelName = this.props.checkFiles.fileName.split(".")[0];
+                this.modelName = this.props.checkFiles.split(".")[0];
+                this.props.setId(this.modelName);
                 this.switchNewmodel(this.modelName);
                 this.candelete = true
                 //this.controls.target.copy(this.getModelbyName(this.modelName).position)
@@ -759,8 +763,8 @@ class Testpanel extends React.Component{
           uploadFile(userid: $userid, pointd: $pdInput)
         }
         `;
-        const model = mesh
-        console.log("hahah",mesh)
+        const model = mesh;
+        console.log("upload",model)
         if(model !== undefined){
             const points = model.geometry.getAttribute('position').array
             const pointCloudData = []
@@ -818,7 +822,10 @@ class Testpanel extends React.Component{
           uploadFile(userid: $userid, pointd: $pdInput)
         }
         `;
+        console.log("demodel",name)
         const model = this.getModelbyName(name);
+        console.log(this.scene)
+        console.log("demodel",model)
         if(model !== undefined){
             const geometry = model.geometry;
             geometry.applyMatrix4(model.matrix);
@@ -907,6 +914,10 @@ class Testpanel extends React.Component{
         const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
         const data = await response.json();
         return data.data.downloadFile.pointCloudData;
+    }
+
+    setCurrentModel(name){
+        this.modelName = name;
     }
 
     async updatemodelbypoints(points){
