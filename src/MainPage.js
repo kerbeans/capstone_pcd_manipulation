@@ -31,12 +31,45 @@ class LoginPage extends React.Component {
       this.state = {
         input1: '',
         input2: '',
+        input3: '',
+        mode_login:true
       };
-      this.handleClick=this.handleClick.bind(this)
-      this.handleInputChange=this.handleInputChange.bind(this)
-      this.queryLogin=this.queryLogin.bind(this)
+      this.handleClick=this.handleClick.bind(this);
+      this.handleInputChange=this.handleInputChange.bind(this);
+      this.handleRegistration=this.handleRegistration.bind(this);
+      this.queryLogin=this.queryLogin.bind(this);
     }
-  
+    componentDidMount(){
+      this.setState({model_login:true});
+    }
+    async queryRegister(userid,password){
+      const query =`
+      query queryregistration($userid:Int!,$password:String!){
+        registration(userid:$userid,password:$password)
+      }`;
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Authorization':"Basic "+userid,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          variables: {
+            userid,
+            password,
+          },
+        }),
+      };
+      const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
+      const data = await response.json();
+      console.log('ldzeng',data);
+      console.log(data.data.registration);
+      return data.data.registration;
+
+    }
+
     async queryLogin(userid, password) {
       const query = `
         query login($userid: Int!, $password: String!) {
@@ -59,7 +92,6 @@ class LoginPage extends React.Component {
           },
         }),
       };
-    
       const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
       const data = await response.json();
       console.log(data.data.login)
@@ -70,9 +102,32 @@ class LoginPage extends React.Component {
     handleInputChange = (e) => {
       const { name, value } = e.target;
       this.setState({ [name]: value });
+      // console.log('ldzeng',name,value);
     };
   
+    handleRegistration= async()=>{
+      if(this.state.mode_login){
+        this.setState({mode_login:false});
+        return;
+      }
+      const userid=this.state.input1;
+      const response= await this.queryRegister(this.state.input1,this.state.input2);
+      if(response=='success'){
+        await this.props.setselector();
+        await this.props.setuserid(userid);
+        this.props.login();
+      }
+      else{
+        alert(response);
+      }
+
+    }
+
     handleClick = async () => {
+      if(!this.state.mode_login){
+        this.setState({mode_login:true});
+        return ;
+      }
       const userid = this.state.input1
       const response = await this.queryLogin(this.state.input1, this.state.input2)
       console.log(response)
@@ -118,7 +173,22 @@ class LoginPage extends React.Component {
             style={{borderRadius:'0.5rem'}}
           />
           </div>
-          <button onClick={this.handleClick}>Login</button>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '10px',display:this.state.mode_login?'none':'block'}}>
+          <label htmlFor="username" style={{marginRight:'10px', color:this.state.input2!==this.state.input3?"#ff0000":"#ffffff", borderRadius:'1rem'}}>&nbsp;Password confirm:</label>
+          <input
+            type="password"
+            name="input3"
+            value={this.state.input3}
+            onChange={this.handleInputChange}
+            placeholder="password_confirm"
+            style={{borderRadius:'0.5rem'}}
+          />
+          </div>
+          <div style={{'float':'left'}}>
+            <button onClick={this.handleClick}>Login</button>
+             &nbsp;&nbsp;
+            <button onClick={this.handleRegistration} disabled={(this.state.mode_login)||(this.state.input2===this.state.input3)?'':'disabled'}>register</button>
+          </div>
         </div>
       );
     }
