@@ -63,6 +63,7 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange
         cursor: "move",
         display: 'flex',
         alingItem: 'center',
+        overflow: 'hidden'
       }),
       [isDragging]
     );
@@ -75,7 +76,7 @@ const WorkspaceItem= memo(function WorkspaceItem({info,children,onCheckboxChange
 
     return (
       <div ref={drag} style={style}>
-        <input type="checkbox" onChange={handleCheckboxChange} checked={isSelected}/>
+        <input type="checkbox" onChange={handleCheckboxChange} checked={isSelected} />
         <small>{info.fileName}*</small>
       </div>
     );
@@ -100,6 +101,7 @@ const SearchItem=memo(function SearchItem({info, onCheckboxChange, isSelected}){
         cursor:"move",
         display: 'flex',
         alingItem: 'center',
+        overflow:'hidden'
     }
 
     const handleCheckboxChange = (event) => {
@@ -412,15 +414,22 @@ export default function SearchPanel(props){
       const reader = new FileReader();
       var mesh = null;
       reader.onload = (e) => {
-        console.log(e.target.result)
+        console.log('e.target.result',e.target.result)
         const loader = new PCDLoader();
-        mesh = loader.parse(e.target.result, (points) => {
-        });
-        console.log(mesh)
+        try{
+          mesh = loader.parse(e.target.result, (points) => {
+          });
+        }catch{
+          alert('broken file');
+          mesh=null;
+        }
       }
       await reader.readAsArrayBuffer(file);
       setTimeout(() => {
-        ref.current.addlocalpoint(mesh, file.name.split('.')[0]);
+        if(mesh != null){
+          ref.current.addlocalpoint(mesh, file.name.split('.')[0]);
+          console.log('ldzeng commmit',mesh);
+        }
       }, 2000);
     };
 

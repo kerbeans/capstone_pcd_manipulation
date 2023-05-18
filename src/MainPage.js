@@ -5,20 +5,6 @@ import { Layout, Space, FloatButton, Alert } from "antd";
 import { QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import React from "react";
 
-
-const dummyListData=[
-    {id:1,fileName:'horse.pcd',filePath:'/abc/zeghtti.pcd'},
-    {id:2,fileName:'Zaghetto.pcd',filePath:'/ddd/globalMap.pcd'},
-    {id:3,fileName:'mushapotei.pcd',filePath:'mushapotei.pcd'},
-    {id:4,fileName:'npx.lac',filePath:'/bs/npx.lac'}
-]
-const dummyworkingFiles=[
-    {id:5,fileName:'zeghtti2.pcd',filePath:'/abc/zeghtti.pcd',display:false},
-    {id:6,fileName:'globalMap2.pcd',filePath:'/ddd/globalMap.pcd',display:true},
-    {id:7,fileName:'mushapotei2.pcd',filePath:'mushapotei.pcd',display:false},
-    {id:8,fileName:'npx.lac2',filePath:'/bs/npx.lac',display:false}
-]
-
 const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
 
 const {Sider, Content } = Layout;
@@ -150,7 +136,7 @@ class MainPage extends React.Component{
           message:'',
           maxpage:1,
           currentfile:[],
-          pagenumber:2,
+          pagenumber:5,
           loged:false
         };
         this.loadData=this.loadData.bind(this);
