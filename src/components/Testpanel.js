@@ -14,20 +14,27 @@ const GRAPHQL_SERVER_URL = 'http://155.138.208.234:5000/graphql';
 
 class Testpanel extends React.Component{
     con = true;
+    pickedPoint = new THREE.Vector3(0,0,0);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    x_camera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0.1, 1000);
+    y_camera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0.1, 1000);
+    z_camera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0.1, 1000);
     renderer = new THREE.WebGLRenderer();
     controls = new OrbitControls( this.camera, this.renderer.domElement );
     transformControls = new TransformControls( this.camera, this.renderer.domElement );
-    pointIndex = 0; 
+    pointIndex = -1; 
     modelName = ''; 
     loader = new PCDLoader();
     gui = new GUI();
     folder = this.gui.addFolder('Camera control');
+    newPointFolder = this.gui.addFolder('Create new point');
     pointControlFoler =  this.gui.addFolder('Point control');
     rotationFolder = this.gui.addFolder("Rotation Control");
     translationFolder = this.gui.addFolder('Translation Control');
     materialFolder = this.gui.addFolder('Material Control');
+    scaleFolder = this.gui.addFolder('Scale Control');
+
     guiControls = {
         x:0,
         y:0,
@@ -41,6 +48,9 @@ class Testpanel extends React.Component{
         y: 0,
         z: 0
       };      
+    scaleControl = {
+        scale: 1
+    };
     rotationControl = { x: 0, y: 0, z: 0 };
     showPointPosition = {position_x:0,position_y:0,position_z:0};
     materialControl = {
@@ -54,6 +64,44 @@ class Testpanel extends React.Component{
     }
     //坐标轴
     axesHelper = new THREE.AxesHelper(1e5);
+    newPointCoordinate = new THREE.Vector3(0,0,0);
+    newPoint = {
+        point: new THREE.Points(),
+        x: 0,
+        y: 0,
+        z: 0,
+        flag: false,
+        defaultp: new THREE.Vector3(0,0,0),
+        create: function(scene) {
+            let geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute([0,0,0], 3));
+            let material = new THREE.PointsMaterial({color: new THREE.Vector3(1,1,1), size: 1});
+            this.point.material = material;
+            this.point.geometry = geometry;
+            scene.add(this.point);
+            this.point.visible = false;
+        },
+        addnew: function(add) {
+            add(this.point.position.x, this.point.position.y, this.position.z);
+        },
+        update: function(x,y,z) {
+            let position = this.point.geometry.getAttribute('position');
+            position.array[0] = this.defaultp.x + x;
+            position.array[1] = this.defaultp.y + y;
+            position.array[2] = this.defaultp.z + z;
+            position.needsUpdate = true;
+        },
+        show: function(x,y,z) {
+            let position = this.point.geometry.getAttribute('position');
+            position.array[0] = x;
+            position.array[1] = y;
+            position.array[2] = z;
+        },
+        hide: function() {
+            this.point.visible = false;
+        },
+    };
+
     //鼠标点击拾取点
     ray = new THREE.Raycaster();
     mouse = new THREE.Vector2();
@@ -68,14 +116,15 @@ class Testpanel extends React.Component{
         this.reqFullScreen = this.reqFullScreen.bind(this);
         this.mouseClickGetPoints = this.mouseClickGetPoints.bind(this);
         this.updateCamera = this.updateCamera.bind(this);
-        this.addPoint = this.addPoint.bind(this);   
-        this.removePoint =this.removePoint.bind(this);
+        //this.addPoint = this.addPoint.bind(this);   
+        this.selectPoint =this.selectPoint.bind(this);
         this.showInfaandmode =this.showInfaandmode.bind(this);
         this.transfertomesh = this.transfertomesh.bind(this);
         this.saveMeshAsGLTF = this.saveMeshAsGLTF.bind(this);
         this.ownrender = this.ownrender.bind(this);
         this.updatepanelrotationpanel = this.updatepanelrotationpanel.bind(this);
         this.updateTranslationPanel = this.updateTranslationPanel.bind(this);
+        this.updateScalePanel = this.updateScalePanel.bind(this);
         this.switchNewmodel = this.switchNewmodel.bind(this);
         this.deleteModelbyName = this.deleteModelbyName.bind(this);
         this.addModel = this.addModel.bind(this);
@@ -94,6 +143,11 @@ class Testpanel extends React.Component{
         this.deleteworkingfile = this.deleteworkingfile.bind(this);
         this.addlocalpoint = this.addlocalpoint.bind(this);
         this.updatemodelbymesh = this.updatemodelbymesh.bind(this);
+        this.removePoint = this.removePoint.bind(this);
+        this.addPoint = this.addPoint.bind(this);
+        this.addPointShow = this.addPointShow.bind(this);
+        this.addPointFunc = this.addPointFunc.bind(this);
+        this.getPan = this.getPan.bind(this);
     }
     
     
@@ -113,6 +167,7 @@ class Testpanel extends React.Component{
         this.camera.position.set( 0.9728517749133652, 1.1044765132727201, 0.7316689528482836 );
         this.controls.target.set( 0, 0 ,0 );
         this.controls.update();
+        this.addPointShow();
         this.controls.enablePan = true;
         this.controls.enableDamping = true;
         this.controls.addEventListener( 'change', this.ownrender );
@@ -132,24 +187,85 @@ class Testpanel extends React.Component{
         this.scene.add( dirLight );
         this.folder.add(this.camera, 'fov', 1, 180).onChange(this.updateCamera);
         this.folder.add(this.camera, 'near', 1, 200).onChange(this.updateCamera);
-        //this.folder.add(this.camera, 'far', 1, 200).onChange(this.updateCamera);
         const name = 'horse'
         //this.loader.load( 'http://localhost:3000/horse.pcd', (points) => this.loaderfun(points, name))
         this.modelName = name;
-        //this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
+        this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
         this.scene.add(this.camera);
         this.scene.add(this.axesHelper);
+        //this.newPointFolder.domElement.style.display = 'none';
         this.showInfaandmode();
-        this.addPointFun();
         console.log(this.transformControls)
         //window.addEventListener('dblclick',this.reqFullScreen);
         window.addEventListener( 'resize', this.handleresize);
         this.gui.open();
         this.gui.domElement.style.display = 'none';
         this.renderer.setSize( window.innerWidth*0.80, window.innerHeight );
+        this.scene.add(this.x_camera);
+        this.scene.add(this.y_camera);
+        this.scene.add(this.z_camera);
+        this.x_camera.position.set( 0, 0 ,50 );
+        this.z_camera.position.set( 50, 0 ,0 );
+        this.y_camera.position.set( 0, 50 ,0 );
+        this.x_camera.lookAt( 0,0,0 );
+        this.z_camera.lookAt( 0,0,0 );
+        this.y_camera.lookAt( 0,0,0 );
         this.ownrender();
     }
     
+
+    addPointFunc() {
+        this.newPoint.point.visible = !this.newPoint.point.visible;
+        this.ownrender();
+    }
+
+    getPan(view) {
+        if(view == 'x') {
+            this.renderer.render(this.scene, this.x_camera);
+        }
+        else if(view == 'y') {
+            this.renderer.render(this.scene, this.y_camera);
+        }
+        else if(view == 'z') {
+            this.renderer.render(this.scene, this.z_camera);
+        }
+        this.renderer.render(this.scene, this.x_camera);
+        const dataURL = this.renderer.domElement.toDataURL('image/png');
+        //const blob = new Blob([dataURL], { type: 'image/png' });
+        //const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = view + '_panview.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    addPointShow() {
+        this.newPoint.create(this.scene);
+        this.newPointFolder.add(this, 'addPointFunc').name('Create Point');
+        this.newPointFolder.add(this, 'addPoint').name('Add to Mesh');
+        this.newPointFolder.add(this.newPoint, 'x', -10, 10).onChange(() => {
+            this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            console.log(this.newPoint.point);
+            this.ownrender();
+          });
+          
+        this.newPointFolder.add(this.newPoint, 'y', -50, 50).onChange(() => {
+            this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            this.ownrender();
+          });
+          
+        this.newPointFolder.add(this.newPoint, 'z', -50, 50).onChange(() => {
+            this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
+            this.ownrender();
+          });   
+    }
+
     async addlocalpoint (points, name){
         await this.updatemodelbymesh(points,name);
         //this.props.addModel(name,points);
@@ -211,6 +327,7 @@ class Testpanel extends React.Component{
             this.updateMaterialPanel();
             this.updatepanelrotationpanel();
             this.updateTranslationPanel();
+            this.updateScalePanel();
             this.exist = true;
         }
         else{
@@ -269,8 +386,21 @@ class Testpanel extends React.Component{
     }
 
     switchNewmodel = (newname) => {
+        console.log(newname)
         const newmodel = this.getModelbyName(newname);
-
+        const oldmodel = this.getModelbyName(this.modelName);
+        console.log(newmodel,oldmodel)
+        let colors = new Float32Array(oldmodel.geometry.getAttribute('position').count * 3);
+        for (let i = 0; i < colors.length; i += 3) {
+            colors[i] = 1;     // r
+            colors[i + 1] = 1; // g
+            colors[i + 2] = 1; // b
+        }
+        oldmodel.material = new THREE.PointsMaterial({ color: oldmodel.material.color, size: 5 , vertexColors: true})
+        oldmodel.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        oldmodel.geometry.getAttribute('color').needsUpdate = true;
+        this.pointIndex = -1;
+        //判断points.material.color.r是否为0，为0，r=1，否则r=0
         if( newmodel !== undefined && newmodel !== null ){
             this.modelName = newname;
             this.translationControl.x = newmodel.position.x;
@@ -281,6 +411,9 @@ class Testpanel extends React.Component{
             this.rotationControl.z = newmodel.rotation.z;
             this.materialControl.color = newmodel.material.color;
             this.materialControl.size = newmodel.material.size;
+            this.scaleControl.x = newmodel.scale.x;
+            this.scaleControl.y = newmodel.scale.y;
+            this.scaleControl.z = newmodel.scale.z;
         }
         else{
             //this.gui.domElement.style.display = 'none';
@@ -311,6 +444,15 @@ class Testpanel extends React.Component{
           points.material.size = value;
           this.ownrender();
         });
+    }
+
+    updateScalePanel = () => {
+        const points = this.getModelbyName(this.modelName);
+        this.scaleFolder.add(this.scaleControl, 'scale', 0.1, 10, 0.1).name('X').onChange((value) => {
+            const points = this.getModelbyName(this.modelName);
+            points.scale.set(value,value,value);
+            this.ownrender();
+          });
     }
 
     updateTranslationPanel = () => {
@@ -467,6 +609,7 @@ class Testpanel extends React.Component{
     
 
     //添加点
+    /*
     addPoint = (x, y, z) => {
         const position = this.getModelbyName(this.modelName).geometry.attributes.position.array;
         const newPosition = new Float32Array(position.length + 3);
@@ -481,7 +624,7 @@ class Testpanel extends React.Component{
         this.getModelbyName(this.modelName).geometry.setDrawRange(0, newPosition.length / 3);
         this.getModelbyName(this.modelName).geometry.computeBoundingBox();
         this.ownrender();
-    };
+    };*/
 
 
     //鼠标点击拾取点
@@ -492,17 +635,36 @@ class Testpanel extends React.Component{
         this.mouse.y =-((event.clientY - py) / this.renderer.domElement.offsetHeight) * 2 + 1;    
         this.ray.setFromCamera(this.mouse, this.camera);
         this.intersects = this.ray.intersectObjects(this.scene.children, true);
-        
+        /*
+        console.log("section",this.intersects)
+        let arrowHelper = new THREE.ArrowHelper(
+            this.ray.ray.direction,  // 使用Raycaster的方向
+            this.ray.ray.origin,    // 使用Raycaster的原点
+            10000,                      // 长度，你可以根据需要调整
+            0xffff00                 // 颜色，你可以根据需要调整
+          );
+          
+          // 添加ArrowHelper到场景中
+        this.scene.add(arrowHelper);
+        */
+        //this.newPointFolder.domElement.style.display = 'none';
         if(this.intersects.length>0){
-            this.pointIndex = this.intersects[0].index;
-            this.pointGUI = this.intersects[0].point;
-            window.updateGUI(this.pointGUI);           
+            for(var i = 0; i < this.intersects.length; i++){
+                if(this.intersects[i].object.name === this.modelName){
+                    this.pointPosition = this.intersects[i].point;
+                    this.pointIndex = this.intersects[i].index;
+                    this.pointGUI = this.intersects[i].point;
+                    this.selectPoint();
+                    window.updateGUI(this.pointGUI);
+                    this.ownrender();
+                    break;
+                }
+            }
+            //window.updateGUI(this.pointGUI);           
         }else{
-            this.pointGUI = {x:0,y:0,z:0};
-            window.updateGUI(this.pointGUI);
+            
         }
-        
-        this.removePoint();
+        //this.removePoint();
     }
 
     findPointIndex = ()=>{
@@ -557,8 +719,58 @@ class Testpanel extends React.Component{
         }
     }
     
-    //删除点
-    removePoint=() =>{
+    //选择点
+    selectPoint=() =>{
+        console.log("click")
+        let points = this.getModelbyName(this.modelName);
+        console.log(points)
+        let colors = new Float32Array(points.geometry.getAttribute('position').count * 3);
+        for (let i = 0; i < colors.length; i += 3) {
+            colors[i] = 1;     // r
+            colors[i + 1] = 1; // g
+            colors[i + 2] = 1; // b
+        }
+        points.material = new THREE.PointsMaterial({ color: points.material.color, size: points.material.size , vertexColors: true})
+        points.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        //判断points.material.color.r是否为0，为0，r=1，否则r=0
+        let r = points.material.color.r === 0?1:1/points.material.color.r;
+        let g = points.material.color.g === 0?1:1/points.material.color.g;
+        let b = points.material.color.b === 0?1:1/points.material.color.b;
+        points.geometry.getAttribute('color').setXYZ(this.pointIndex,r,g, b);
+        points.geometry.getAttribute('color').needsUpdate = true;
+
+        if(this.newPoint.flag === false){
+            this.newPointFolder.domElement.style.display = "block";
+            this.newPoint.flag = true;
+            this.newPointFolder.x = 0;
+            this.newPointFolder.y = 0;
+            this.newPointFolder.z = 0;
+            let point = new THREE.Vector3();
+            let a = points.geometry.getAttribute('position').array;
+            let matrix = points.matrixWorld;
+            point.fromBufferAttribute(points.geometry.attributes.position, this.pointIndex);
+            point.applyMatrix4(matrix);
+            //this.newPoint.show(point.x,point.y,point.z);
+            this.pickedPoint = new THREE.Vector3(point.x,point.y,point.z);
+            //this.newPoint.defaultp = new THREE.Vector3(point.x,point.y,point.z);
+        }
+        else{
+            this.newPointFolder.domElement.style.display = "block";
+            let point = new THREE.Vector3();
+            console.log(this.newPointFolder)
+            this.newPointFolder.x = 0;
+            this.newPointFolder.y = 0;
+            this.newPointFolder.z = 0;
+            let a = points.geometry.getAttribute('position').array;
+            let matrix = points.matrixWorld;
+            point.fromBufferAttribute(points.geometry.attributes.position, this.pointIndex);
+            point.applyMatrix4(matrix);
+            //this.newPoint.show(point.x,point.y,point.z);
+            this.pickedPoint = new THREE.Vector3(point.x,point.y,point.z);
+            //this.newPoint.defaultp = new THREE.Vector3(point.x,point.y,point.z);
+        }
+        //this.ownrender();
+        /*
         const position = this.getModelbyName(this.modelName).geometry.attributes.position.array;
         const newPosition = new Float32Array(position.length - 3);
 
@@ -568,9 +780,24 @@ class Testpanel extends React.Component{
         this.getModelbyName(this.modelName).geometry.setAttribute('position', new THREE.BufferAttribute(newPosition, 3));
         this.getModelbyName(this.modelName).geometry.setDrawRange(0, newPosition.length / 3);
         this.getModelbyName(this.modelName).geometry.computeBoundingBox();
-        this.ownrender();
+        this.ownrender();*/
     }
 
+    removePoint=() =>{
+        if(this.pointIndex != -1){
+            const position = this.getModelbyName(this.modelName).geometry.attributes.position.array;
+            const newPosition = new Float32Array(position.length - 3);
+            newPosition.set(position.slice(0,this.pointIndex * 3));
+            newPosition.set(position.slice((this.pointIndex + 1) * 3), this.pointIndex * 3);
+            this.getModelbyName(this.modelName).geometry.setAttribute('position', new THREE.BufferAttribute(newPosition, 3));
+            this.getModelbyName(this.modelName).geometry.setDrawRange(0, newPosition.length / 3);
+            this.getModelbyName(this.modelName).geometry.computeBoundingBox();
+            this.ownrender();
+            this.pointIndex = -1;
+        }
+    }
+
+    /*
     addPointFun=()=>{
         const pointAdd = {
             x:0,
@@ -600,7 +827,7 @@ class Testpanel extends React.Component{
             this.getModelbyName(this.modelName).geometry.computeBoundingBox();
             this.ownrender();
         }
-    }
+    }*/
 
     async transfertomesh(cloudpoints){
         const points = [];
@@ -657,16 +884,6 @@ class Testpanel extends React.Component{
     componentWillUnmount() {
         this.mount.removeChild(this.renderer.domElement);
     }
-    
-    //渲染更新
-    ownrender(){
-        this.renderer.render(this.scene, this.camera); 
-    }
-
-    showaxis(){
-        this.axesHelper.visible = !this.axesHelper.visible;
-        this.ownrender();
-    }
 
     async componentDidUpdate(prevProps, prevState) {
         if (prevProps.workingFiles !== this.props.workingFiles) {
@@ -690,6 +907,7 @@ class Testpanel extends React.Component{
                         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                         const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 5 });
                         const pointCloud = new THREE.Points(pointsGeometry, pointsMaterial);
+                        console.log("change", pointCloud);
                         pointCloud.name = model;
                         pointCloud.geometry.center(0,0,0);
                         pointCloud.geometry.rotateX( Math.PI );
@@ -713,15 +931,17 @@ class Testpanel extends React.Component{
                         this.camera.position.y = largestDimension * 1;
                         this.modelName = model;
                         if(this.exist === false){
+                            this.scene.add(pointCloud);
                             this.updateMaterialPanel();
                             this.updatepanelrotationpanel();
                             this.updateTranslationPanel();
+                            this.updateScalePanel();
                             this.exist = true;
                         }
                         else{
+                            this.scene.add(pointCloud);
                             this.switchNewmodel(model);
                         }
-                        this.scene.add(pointCloud);
                         this.pointArray.push(model);
                         this.ownrender();
                     }
@@ -757,6 +977,7 @@ class Testpanel extends React.Component{
         }
     };
     
+    // Network
     async updatemodelbymesh(mesh,name){
         const mutation = `
         mutation UploadFileMutation($userid: Int!,$pdInput: PointDataInput!) {
@@ -916,10 +1137,6 @@ class Testpanel extends React.Component{
         return data.data.downloadFile.pointCloudData;
     }
 
-    setCurrentModel(name){
-        this.modelName = name;
-    }
-
     async updatemodelbypoints(points){
         const mutation = `
         mutation UploadFileMutation($userid: Int!, $pdInput: PointDataInput!) {
@@ -970,12 +1187,6 @@ class Testpanel extends React.Component{
         console.log(data)
     }
 
-    generatefilename(){
-        const min = 10000000;
-        const max = 99999999;
-        return (Math.floor(Math.random() * (max - min + 1)) + min).toString();
-    }
-
     async submittoserver(){
         var vertices = []
         for(var i = 0; i < this.pointArray.length; i++){
@@ -994,6 +1205,47 @@ class Testpanel extends React.Component{
             await this.updatemodelbypoints(vertices)
             this.props.updateList();
         }
+    }
+
+    // Utils
+    generatefilename(){
+        const min = 10000000;
+        const max = 99999999;
+        return (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+    }
+
+    ownrender(){
+        this.renderer.render(this.scene, this.camera); 
+    }
+
+    // For Parent Class
+
+    setCurrentModel(name){
+        this.modelName = name;
+    }
+
+    showaxis(){
+        this.axesHelper.visible = !this.axesHelper.visible;
+        this.ownrender();
+    }
+
+    addPoint(){
+        let points = this.getModelbyName(this.modelName);
+        let pointsArray = points.geometry.getAttribute('position').array
+        let tmp_p = this.newPoint.point.geometry.getAttribute('position').array;
+        var localPosition = new THREE.Vector3(tmp_p[0], tmp_p[1], tmp_p[2]);
+        var worldPosition = localPosition.applyMatrix4(this.newPoint.point.matrixWorld);
+        let v = new THREE.Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
+        var localPosition = points.worldToLocal(v.clone());
+        let newp = new Float32Array([localPosition.x, localPosition.y, localPosition.z])
+        var newPositions = new Float32Array(pointsArray.length + newp.length);
+        newPositions.set(pointsArray);
+        newPositions.set(newp, pointsArray.length);
+        //pointsArray = [...pointsArray, [this.newPoint.x, this.newPoint.y, this.newPoint.z]]
+        let newAttribute = new THREE.BufferAttribute(newPositions, 3);
+        points.geometry.setAttribute('position', newAttribute);
+        points.geometry.attributes.position.needsUpdate = true;
+        this.ownrender();
     }
 
     render(){
