@@ -64,8 +64,6 @@ class LoginPage extends React.Component {
       };
       const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
       const data = await response.json();
-      console.log('ldzeng',data);
-      console.log(data.data.registration);
       return data.data.registration;
 
     }

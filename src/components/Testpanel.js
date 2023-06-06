@@ -153,7 +153,6 @@ class Testpanel extends React.Component{
     
     //初始化运行
     componentDidMount() {     
-        console.log("asd")
         this.init();
     }
 
@@ -248,20 +247,16 @@ class Testpanel extends React.Component{
         this.newPointFolder.add(this, 'addPoint').name('Add to Mesh');
         this.newPointFolder.add(this.newPoint, 'x', -10, 10).onChange(() => {
             this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
-            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
-            console.log(this.newPoint.point);
             this.ownrender();
           });
           
         this.newPointFolder.add(this.newPoint, 'y', -50, 50).onChange(() => {
             this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
-            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
             this.ownrender();
           });
           
         this.newPointFolder.add(this.newPoint, 'z', -50, 50).onChange(() => {
             this.newPoint.update(this.newPoint.x, this.newPoint.y, this.newPoint.z);
-            console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
             this.ownrender();
           });   
     }
@@ -278,7 +273,6 @@ class Testpanel extends React.Component{
     /*update model in the scene*/
 
     async loadlocalfile(bin){
-        console.log("dasd",bin)
         this.loader.parse(bin, (points) => {
             const material = new THREE.PointsMaterial({
                 size: 0.1, // 您可以根据需要调整点的大小
@@ -288,9 +282,7 @@ class Testpanel extends React.Component{
             points.material = material; 
             points.geometry.center(0,0,0);
             points.geometry.rotateX( Math.PI );
-            console.log("asdqe")
             this.scene.add(points);
-            console.log(this.scene);
             this.ownrender();
             // 更新Three.js渲染器以显示点云
           });
@@ -299,7 +291,7 @@ class Testpanel extends React.Component{
 
     //设置点的属性，并用gui控制模型的属性。
     loaderfun = (points,name) => {
-        console.log(points)
+        console.log('points loaderfun TestPanel',points)
         points.name = name
         points.geometry.center(0,0,0);
         points.geometry.rotateX( Math.PI );
@@ -386,10 +378,8 @@ class Testpanel extends React.Component{
     }
 
     switchNewmodel = (newname) => {
-        console.log(newname)
         const newmodel = this.getModelbyName(newname);
         const oldmodel = this.getModelbyName(this.modelName);
-        console.log(newmodel,oldmodel)
         let colors = new Float32Array(oldmodel.geometry.getAttribute('position').count * 3);
         for (let i = 0; i < colors.length; i += 3) {
             colors[i] = 1;     // r
@@ -461,8 +451,6 @@ class Testpanel extends React.Component{
             const points = this.getModelbyName(this.modelName);
             points.position.x = value;
             this.ownrender();
-            console.log(points.position.x)
-            console.log(value)
           });
         this.translationFolder.add(this.translationControl, 'y', -100, 100, 0.1).name('Y').onChange((value) => {
             const points = this.getModelbyName(this.modelName);
@@ -673,7 +661,7 @@ class Testpanel extends React.Component{
                 this.pointPosition[1] === this.getModelbyName(this.modelName).geometry.attributes.position.array[i+1]&&
                 this.pointPosition[2] === this.getModelbyName(this.modelName).geometry.attributes.position.array[i+2]){
                     this.index = i;
-                    console.log(this.index)
+                    console.log('points index in testpanel',this.index)
  
                 }
         }
@@ -721,9 +709,8 @@ class Testpanel extends React.Component{
     
     //选择点
     selectPoint=() =>{
-        console.log("click")
         let points = this.getModelbyName(this.modelName);
-        console.log(points)
+        console.log('selected point',points)
         let colors = new Float32Array(points.geometry.getAttribute('position').count * 3);
         for (let i = 0; i < colors.length; i += 3) {
             colors[i] = 1;     // r
@@ -757,7 +744,6 @@ class Testpanel extends React.Component{
         else{
             this.newPointFolder.domElement.style.display = "block";
             let point = new THREE.Vector3();
-            console.log(this.newPointFolder)
             this.newPointFolder.x = 0;
             this.newPointFolder.y = 0;
             this.newPointFolder.z = 0;
@@ -797,37 +783,6 @@ class Testpanel extends React.Component{
         }
     }
 
-    /*
-    addPointFun=()=>{
-        const pointAdd = {
-            x:0,
-            y:0,
-            z:0,
-            addPoint: function () {
-                    window.addPoint(pointAdd.x,pointAdd.y,pointAdd.z)
-                
-            },        
-        };
-        this.pointControlFoler.add(pointAdd, 'x').name("x of add point");
-        this.pointControlFoler.add(pointAdd, 'y').name("y of add point");
-        this.pointControlFoler.add(pointAdd, 'z').name("z of add point");
-        this.pointControlFoler.add(pointAdd, 'addPoint').name("adding this point");
-        window.addPoint=(x,y,z) =>{
-            const position = this.getModelbyName(this.modelName).geometry.attributes.position.array;
-            const newPosition = new Float32Array(position.length + 3);
-    
-            newPosition.set(position);
-            newPosition[position.length]=x;
-            newPosition[position.length+1]=y;
-            newPosition[position.length+2]=z;
-            
-    
-            this.getModelbyName(this.modelName).geometry.setAttribute('position', new THREE.BufferAttribute(newPosition, 3));
-            this.getModelbyName(this.modelName).geometry.setDrawRange(0, newPosition.length / 3);
-            this.getModelbyName(this.modelName).geometry.computeBoundingBox();
-            this.ownrender();
-        }
-    }*/
 
     async transfertomesh(cloudpoints){
         const points = [];
@@ -907,13 +862,11 @@ class Testpanel extends React.Component{
                         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                         const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 5 });
                         const pointCloud = new THREE.Points(pointsGeometry, pointsMaterial);
-                        console.log("change", pointCloud);
                         pointCloud.name = model;
                         pointCloud.geometry.center(0,0,0);
                         pointCloud.geometry.rotateX( Math.PI );
                         var middle = new THREE.Vector3();
                         pointCloud.geometry.computeBoundingBox();
-                        console.log(pointCloud)
                         pointCloud.geometry.boundingBox.getCenter(middle);
                         pointCloud.applyMatrix4(
                             new THREE.Matrix4().makeTranslation(
@@ -985,7 +938,7 @@ class Testpanel extends React.Component{
         }
         `;
         const model = mesh;
-        console.log("upload",model)
+        console.log("upload mesh",model)
         if(model !== undefined){
             const points = model.geometry.getAttribute('position').array
             const pointCloudData = []
@@ -997,7 +950,6 @@ class Testpanel extends React.Component{
                     };
                     pointCloudData.push(obj);
             }
-            console.log(pointCloudData)
             const pdInput = {
                 fileName: name + ".pcd",
                 header: {
@@ -1028,7 +980,7 @@ class Testpanel extends React.Component{
                   },
                 }),
             };
-            console.log(pdInput)
+            // console.log(pdInput)
             const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
             const data = await response.json();
         }
@@ -1043,10 +995,10 @@ class Testpanel extends React.Component{
           uploadFile(userid: $userid, pointd: $pdInput)
         }
         `;
-        console.log("demodel",name)
+        // console.log("demodel",name)
         const model = this.getModelbyName(name);
-        console.log(this.scene)
-        console.log("demodel",model)
+        // console.log(this.scene)
+        // console.log("demodel",model)
         if(model !== undefined){
             const geometry = model.geometry;
             geometry.applyMatrix4(model.matrix);
@@ -1066,7 +1018,7 @@ class Testpanel extends React.Component{
                     };
                     pointCloudData.push(obj);
             }
-            console.log(pointCloudData)
+            // console.log(pointCloudData)
             const pdInput = {
                 fileName: name + ".pcd",
                 header: {
@@ -1097,7 +1049,6 @@ class Testpanel extends React.Component{
                   },
                 }),
             };
-            console.log(pdInput)
             const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
             const data = await response.json();
         }
@@ -1108,7 +1059,7 @@ class Testpanel extends React.Component{
 
 
     async loadmodel(name){
-        console.log("users",this.props.userid)
+        console.log("users in loadmodel Testpanel",this.props.userid)
         const mutation = `
             mutation mutationdownloadfile($userid: Int!,$fileName: String!) {
                 downloadFile(userid: $userid, fileName: $fileName) {
@@ -1184,7 +1135,6 @@ class Testpanel extends React.Component{
         };
         const response = await fetch(GRAPHQL_SERVER_URL, requestOptions);
         const data = await response.json();
-        console.log(data)
     }
 
     async submittoserver(){
@@ -1249,8 +1199,7 @@ class Testpanel extends React.Component{
     }
 
     render(){
-        console.log("child",this.props.workingFiles);
-        console.log("TestPanel render");
+        console.log("selected workingfile in testpanel",this.props.workingFiles);
         return (
             <div style={{width: '400px', background:'#887', position:'relative' }}>
             <div
