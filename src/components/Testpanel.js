@@ -51,11 +51,14 @@ class Testpanel extends React.Component{
     scaleControl = {
         scale: 1
     };
+    color = 0xffffff;
     rotationControl = { x: 0, y: 0, z: 0 };
     showPointPosition = {position_x:0,position_y:0,position_z:0};
     materialControl = {
-        color: 0xffffff,
-        size: 0.005,
+        // color: 0xff0000,
+        
+        color: this.color,
+        size: 0.29,
       };
     pointInfor = {
         x:this.showPointPosition.position_x,
@@ -157,7 +160,7 @@ class Testpanel extends React.Component{
     }
 
     init = () =>{ 
-        this.pointControlFoler.domElement.style.display = 'none'
+        // this.pointControlFoler.domElement.style.display = 'none'
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.mount.appendChild( this.renderer.domElement );
@@ -186,20 +189,22 @@ class Testpanel extends React.Component{
         this.scene.add( dirLight );
         this.folder.add(this.camera, 'fov', 1, 180).onChange(this.updateCamera);
         this.folder.add(this.camera, 'near', 1, 200).onChange(this.updateCamera);
-        const name = 'horse'
+        const name = 'horse';
+        this.showInfaandmode();
         //this.loader.load( 'http://localhost:3000/horse.pcd', (points) => this.loaderfun(points, name))
         this.modelName = name;
         this.renderer.domElement.addEventListener("click",this.mouseClickGetPoints);
         this.scene.add(this.camera);
         this.scene.add(this.axesHelper);
         //this.newPointFolder.domElement.style.display = 'none';
-        this.showInfaandmode();
-        console.log(this.transformControls)
+        
+        
         //window.addEventListener('dblclick',this.reqFullScreen);
         window.addEventListener( 'resize', this.handleresize);
         this.gui.open();
         this.gui.domElement.style.display = 'none';
         this.renderer.setSize( window.innerWidth*0.80, window.innerHeight );
+        
         this.scene.add(this.x_camera);
         this.scene.add(this.y_camera);
         this.scene.add(this.z_camera);
@@ -267,6 +272,7 @@ class Testpanel extends React.Component{
     }
 
     handleresize = () =>{
+        // this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
         this.renderer.setSize( window.innerWidth*0.85, window.innerHeight );
         this.ownrender();
     }
@@ -274,9 +280,11 @@ class Testpanel extends React.Component{
 
     async loadlocalfile(bin){
         this.loader.parse(bin, (points) => {
+            
             const material = new THREE.PointsMaterial({
                 size: 0.1, // 您可以根据需要调整点的大小
-                color: 0xff0000, // 设置点的颜色为红色
+                color: this.color, // 设置点的颜色为红色
+
               });
             points.name = "asdasd"
             points.material = material; 
@@ -386,7 +394,7 @@ class Testpanel extends React.Component{
             colors[i + 1] = 1; // g
             colors[i + 2] = 1; // b
         }
-        oldmodel.material = new THREE.PointsMaterial({ color: oldmodel.material.color, size: 5 , vertexColors: true})
+        oldmodel.material = new THREE.PointsMaterial({ color: oldmodel.material.color, size: 0.29 , vertexColors: true})
         oldmodel.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         oldmodel.geometry.getAttribute('color').needsUpdate = true;
         this.pointIndex = -1;
@@ -404,6 +412,8 @@ class Testpanel extends React.Component{
             this.scaleControl.x = newmodel.scale.x;
             this.scaleControl.y = newmodel.scale.y;
             this.scaleControl.z = newmodel.scale.z;
+            // window.updateGUI(this.materialControl.color);  
+            // this.materialControl.color =this.color;
         }
         else{
             //this.gui.domElement.style.display = 'none';
@@ -411,6 +421,7 @@ class Testpanel extends React.Component{
     }
 
     updateModelname = (newname) => {
+        
         this.modelName = newname;
     }
 
@@ -419,6 +430,7 @@ class Testpanel extends React.Component{
     }
 
     addModel = (model) => {
+        
         this.loader.load( 'http://localhost:3000/'+this.modelname+'.pcd', (points) => this.loaderfun(points, model))
     }
 
@@ -429,7 +441,7 @@ class Testpanel extends React.Component{
             points.material.color.set(value);
             this.ownrender();
         });
-        this.materialFolder.add(this.materialControl, 'size', 0.001, 10, 0.001).name('Point Size').onChange((value) => {
+        this.materialFolder.add(this.materialControl, 'size', 0.001,1.00,0.001 ).name('Point Size').onChange((value) => {
           const points = this.getModelbyName(this.modelName);
           points.material.size = value;
           this.ownrender();
@@ -617,25 +629,16 @@ class Testpanel extends React.Component{
 
     //鼠标点击拾取点
     mouseClickGetPoints = (event) => {
+        
         let px = this.renderer.domElement.getBoundingClientRect().left;
         let py = this.renderer.domElement.getBoundingClientRect().top;
         this.mouse.x =((event.clientX - px) / this.renderer.domElement.offsetWidth) * 2 - 1;    
-        this.mouse.y =-((event.clientY - py) / this.renderer.domElement.offsetHeight) * 2 + 1;    
+        this.mouse.y =-((event.clientY - py) / this.renderer.domElement.offsetHeight) * 2 + 1;  
+
+        
         this.ray.setFromCamera(this.mouse, this.camera);
         this.intersects = this.ray.intersectObjects(this.scene.children, true);
-        /*
-        console.log("section",this.intersects)
-        let arrowHelper = new THREE.ArrowHelper(
-            this.ray.ray.direction,  // 使用Raycaster的方向
-            this.ray.ray.origin,    // 使用Raycaster的原点
-            10000,                      // 长度，你可以根据需要调整
-            0xffff00                 // 颜色，你可以根据需要调整
-          );
-          
-          // 添加ArrowHelper到场景中
-        this.scene.add(arrowHelper);
-        */
-        //this.newPointFolder.domElement.style.display = 'none';
+        console.log(this.intersects);
         if(this.intersects.length>0){
             for(var i = 0; i < this.intersects.length; i++){
                 if(this.intersects[i].object.name === this.modelName){
@@ -648,11 +651,8 @@ class Testpanel extends React.Component{
                     break;
                 }
             }
-            //window.updateGUI(this.pointGUI);           
-        }else{
-            
+     
         }
-        //this.removePoint();
     }
 
     findPointIndex = ()=>{
@@ -669,7 +669,8 @@ class Testpanel extends React.Component{
     
 
     //拾取点后显示点的信息
-    showInfaandmode() {
+    showInfaandmode () {
+        
         const pointInfo = { x: 0, y: 0, z: 0 };
         const deletePoint={
             pointDelete : function () {
@@ -684,12 +685,14 @@ class Testpanel extends React.Component{
         this.pointControlFoler.add(pointInfo, 'x').listen();
         this.pointControlFoler.add(pointInfo, 'y').listen();
         this.pointControlFoler.add(pointInfo, 'z').listen();
+       
         this.pointControlFoler.add(deletePoint, 'pointDelete').name('delete this point');
         // this.pointControlFoler.add({ deleteMode: false }, 'deleteMode').onChange((value) => (deleteMode = value));
         window.updateGUI = (point) => {
             pointInfo.x = point.x;
             pointInfo.y = point.y;
             pointInfo.z = point.z;
+            console.log("1212313132131")
         };
 
         //删除点
@@ -860,7 +863,9 @@ class Testpanel extends React.Component{
                             positions[i * 3 + 2] = point.z;
                         }
                         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                        const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 5 });
+                        this.color = Math.floor(Math.random() * 0xffffff);
+                        const pointsMaterial = new THREE.PointsMaterial({ color:  this.color, size: 0.29 });
+                        this.materialControl.color =this.color;
                         const pointCloud = new THREE.Points(pointsGeometry, pointsMaterial);
                         pointCloud.name = model;
                         pointCloud.geometry.center(0,0,0);
