@@ -28,7 +28,7 @@ class Testpanel extends React.Component{
     loader = new PCDLoader();
     gui = new GUI();
     folder = this.gui.addFolder('Camera control');
-    newPointFolder = this.gui.addFolder('Create new point');
+    newPointFolder = this.gui.addFolder('Add and Delete');
     pointControlFoler =  this.gui.addFolder('Point control');
     rotationFolder = this.gui.addFolder("Rotation Control");
     translationFolder = this.gui.addFolder('Translation Control');
@@ -148,6 +148,7 @@ class Testpanel extends React.Component{
         this.addPointShow = this.addPointShow.bind(this);
         this.addPointFunc = this.addPointFunc.bind(this);
         this.getPan = this.getPan.bind(this);
+        this.deletePoint = this.deletePoint.bind(this);
     }
     
     
@@ -213,6 +214,19 @@ class Testpanel extends React.Component{
         this.ownrender();
     }
     
+    deletePoint() {
+        if(this.pointIndex != -1){
+            const position = this.getModelbyName(this.modelName).geometry.attributes.position.array;
+            const newPosition = new Float32Array(position.length - 3);
+            newPosition.set(position.slice(0,this.pointIndex * 3));
+            newPosition.set(position.slice((this.pointIndex + 1) * 3), this.pointIndex * 3);
+            this.getModelbyName(this.modelName).geometry.setAttribute('position', new THREE.BufferAttribute(newPosition, 3));
+            this.getModelbyName(this.modelName).geometry.setDrawRange(0, newPosition.length / 3);
+            this.getModelbyName(this.modelName).geometry.computeBoundingBox();
+            this.ownrender();
+            this.pointIndex = -1;
+        }
+    }
 
     addPointFunc() {
         this.newPoint.point.visible = !this.newPoint.point.visible;
@@ -264,6 +278,7 @@ class Testpanel extends React.Component{
             console.log(this.newPoint.x, this.newPoint.y, this.newPoint.z);
             this.ownrender();
           });   
+        this.newPointFolder.add(this, 'deletePoint').name('Delete Point');
     }
 
     async addlocalpoint (points, name){
@@ -1230,6 +1245,7 @@ class Testpanel extends React.Component{
     }
 
     addPoint(){
+        console.log("add point")
         let points = this.getModelbyName(this.modelName);
         let pointsArray = points.geometry.getAttribute('position').array
         let tmp_p = this.newPoint.point.geometry.getAttribute('position').array;
