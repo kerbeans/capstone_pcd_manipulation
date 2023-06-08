@@ -51,11 +51,12 @@ class Testpanel extends React.Component{
     scaleControl = {
         scale: 1
     };
+    color = 0xffffff;
     rotationControl = { x: 0, y: 0, z: 0 };
     showPointPosition = {position_x:0,position_y:0,position_z:0};
     materialControl = {
-        color: 0xffffff,
-        size: 0.005,
+        color: this.color,
+        size: 0.29,
       };
     pointInfor = {
         x:this.showPointPosition.position_x,
@@ -159,7 +160,7 @@ class Testpanel extends React.Component{
     }
 
     init = () =>{ 
-        this.pointControlFoler.domElement.style.display = 'none'
+        // this.pointControlFoler.domElement.style.display = 'none'
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.mount.appendChild( this.renderer.domElement );
@@ -297,7 +298,7 @@ class Testpanel extends React.Component{
         this.loader.parse(bin, (points) => {
             const material = new THREE.PointsMaterial({
                 size: 0.1, // 您可以根据需要调整点的大小
-                color: 0xff0000, // 设置点的颜色为红色
+                color: this.color // 设置点的颜色为红色
               });
             points.name = "asdasd"
             points.material = material; 
@@ -411,7 +412,7 @@ class Testpanel extends React.Component{
             colors[i + 1] = 1; // g
             colors[i + 2] = 1; // b
         }
-        oldmodel.material = new THREE.PointsMaterial({ color: oldmodel.material.color, size: 5 , vertexColors: true})
+        oldmodel.material = new THREE.PointsMaterial({ color: oldmodel.material.color, size: 0.29 , vertexColors: true})
         oldmodel.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         oldmodel.geometry.getAttribute('color').needsUpdate = true;
         this.pointIndex = -1;
@@ -677,7 +678,8 @@ class Testpanel extends React.Component{
             }
             //window.updateGUI(this.pointGUI);           
         }else{
-            
+            this.pointGUI = {x:0,y:0,z:0};
+            window.updateGUI(this.pointGUI);
         }
         //this.removePoint();
     }
@@ -920,7 +922,9 @@ class Testpanel extends React.Component{
                             positions[i * 3 + 2] = point.z;
                         }
                         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                        const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 5 });
+                        this.color = Math.floor(Math.random() * 0xffffff);
+                        const pointsMaterial = new THREE.PointsMaterial({ color:  this.color, size: 0.29 });
+                        this.materialControl.color =this.color;
                         const pointCloud = new THREE.Points(pointsGeometry, pointsMaterial);
                         console.log("change", pointCloud);
                         pointCloud.name = model;
